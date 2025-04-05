@@ -1,0 +1,48 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - orchestrator
+      - transformer
+      - transporter
+
+  orchestrator:
+    image: mcr.microsoft.com/dotnet/core/sdk:5.0
+    container_name: hal
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    working_dir: /app
+    volumes:
+      - ./Orchestrator:/app
+    command: ["dotnet", "Orchestrator.dll"]  # Placeholder for Orchestrator C# app
+
+  transformer:
+    image: mcr.microsoft.com/dotnet/core/sdk:5.0
+    container_name: optimus
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    working_dir: /app
+    volumes:
+      - ./Transformer:/app
+    command: ["dotnet", "Transformer.dll"]  # Placeholder for Transformer C# app
+
+  transporter:
+    image: atmoz/sftp
+    container_name: beamline
+    ports:
+      - "22:22"
+    volumes:
+      - /path/to/local/files:/home/user/upload
+    environment:
+      - SFTP_USERS=user:password:1001
+    command: /bin/sh -c "while :; do sleep 1; done"  # Keeps the container running
+
+networks:
+  default:
+    driver: bridge
