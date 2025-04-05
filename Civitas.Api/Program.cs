@@ -14,7 +14,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Minimal API endpoints
-app.MapGet("/", () => Results.Ok("👋 Welcome to Civitas API (Minimal API Style)"));
+app.MapGet("/", () => Results.Ok("Welcome to Civitas API (Minimal API Style)"));
 
 app.MapGet("/employees", () =>
 {
