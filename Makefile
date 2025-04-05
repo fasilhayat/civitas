@@ -1,50 +1,51 @@
-# Makefile for Docker Compose setup
+# Define variables
+DOCKER_IMAGE_NAME = civitas-api
+DOCKER_CONTAINER_NAME = civitas-container
+DOCKER_COMPOSE_FILE = docker-compose.yml
+DOCKERFILE_PATH = ./Civitas.Api/Dockerfile
 
-# Default action
-.DEFAULT_GOAL := help
+# Build Docker image
+build:
+	@echo "Building Docker image for Civitas API..."
+	docker build -t $(DOCKER_IMAGE_NAME) -f $(DOCKERFILE_PATH) .
 
-# Build all services
-build: 
-	@echo "Building all services..."
-	docker-compose build
-
-# Run all services
+# Run Docker container
 run:
-	@echo "Running all services..."
-	docker-compose up -d
+	@echo "Running Docker container for Civitas API..."
+	docker run -d --name $(DOCKER_CONTAINER_NAME) -p 8080:80 $(DOCKER_IMAGE_NAME)
 
-# Clean up (stop and remove all containers and volumes)
+# Stop Docker container
+stop:
+	@echo "Stopping Docker container..."
+	docker stop $(DOCKER_CONTAINER_NAME)
+
+# Remove Docker container
+rm:
+	@echo "Removing Docker container..."
+	docker rm $(DOCKER_CONTAINER_NAME)
+
+# Build and run container (shortcut)
+up: build run
+
+# Build and stop container (for restart)
+restart: stop build run
+
+# Clean up (remove stopped containers and unused images)
 clean:
-	@echo "Stopping and removing all containers and volumes..."
-	docker-compose down --volumes --remove-orphans
+	@echo "Cleaning up Docker environment..."
+	docker system prune -f
 
-# Build individual service (NGINX)
-build-nginx:
-	@echo "Building NGINX container..."
-	docker-compose build nginx
+# Build and run Docker Compose (if you have a compose file)
+docker-compose-up:
+	@echo "Running Docker Compose for Civitas..."
+	docker-compose -f $(DOCKER_COMPOSE_FILE) up -d
 
-# Build individual service (Transporter)
-build-transporter:
-	@echo "Building Transporter container..."
-	docker-compose build transporter
+# Docker Compose down (stop and remove containers)
+docker-compose-down:
+	@echo "Stopping and removing Docker Compose containers..."
+	docker-compose -f $(DOCKER_COMPOSE_FILE) down
 
-# Build individual service (Orchestrator)
-build-orchestrator:
-	@echo "Building Orchestrator container..."
-	docker-compose build orchestrator
-
-# Build individual service (Transformer)
-build-transformer:
-	@echo "Building Transformer container..."
-	docker-compose build transformer
-
-# Display help information
-help:
-	@echo "Makefile commands:"
-	@echo "  build                - Build all services"
-	@echo "  run                  - Run all services"
-	@echo "  clean                - Stop and remove all containers and volumes"
-	@echo "  build-nginx          - Build only the NGINX service"
-	@echo "  build-transporter    - Build only the Transporter service"
-	@echo "  build-orchestrator   - Build only the Orchestrator service"
-	@echo "  build-transformer    - Build only the Transformer service"
+# Check Docker container status
+status:
+	@echo "Checking Docker container status..."
+	docker ps -a
