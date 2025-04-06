@@ -253,7 +253,6 @@ Optional: Add JWT validation with OpenResty/Lua or delegate it to the APIs.
 
 🛠️ GraphQL Example: Hot Chocolate Setup
 ```csharp
-Rediger
 public class SalaryType : ObjectType<Salary>
 {
     protected override void Configure(IObjectTypeDescriptor<Salary> descriptor)
