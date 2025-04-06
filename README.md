@@ -369,3 +369,120 @@ Civitas/
 ├── Civitas.sln                  # Solution file
 └── README.md                    # Project overview
 ```
+# C4 model
+
+## 1. Context Diagram (Level 1)
+```mermaid
+  graph TB
+    subgraph External
+        ExternalAPI[External HR API]
+    end
+
+    subgraph System
+        SyncSystem[HR Data Sync System]
+    end
+
+    subgraph Clients
+        ClientA[Keycard System]
+        ClientB[Payroll System]
+        ClientC[Omada IAM]
+    end
+
+    ExternalAPI -->|Fetch Data| SyncSystem
+    SyncSystem -->|Provides Data| ClientA
+    SyncSystem -->|Provides Data| ClientB
+    SyncSystem -->|Provides Data| ClientC
+```
+## 2. Container Diagram (Level 2)
+```mermaid
+  graph TD
+    subgraph External
+        ExternalAPI[External HR API]
+    end
+
+    subgraph System
+        SyncService[.NET Sync Service]
+        PostgreSQL[(PostgreSQL)]
+        Redis[Redis Cache]
+        BridgeLink[BridgeLink Pub/Sub]
+        SalaryAPI[Salary API GraphQL]
+        OrgAPI[Org API GraphQL]
+        KeycardAPI[Keycard API GraphQL]
+        IAMAPI[IAM API GraphQL]
+    end
+
+    subgraph Gateway
+        NGINX[NGINX API Gateway]
+    end
+
+    subgraph Clients
+        ClientA[Keycard System]
+        ClientB[Payroll System]
+        ClientC[Omada IAM]
+    end
+
+    ExternalAPI -->|Fetch JSON Data| SyncService
+    SyncService --> PostgreSQL
+    PostgreSQL -->|Detect Changes| BridgeLink
+    BridgeLink -->|Push Data| Redis
+
+    Redis --> SalaryAPI
+    Redis --> OrgAPI
+    Redis --> KeycardAPI
+    Redis --> IAMAPI
+
+    NGINX -->|/salary| SalaryAPI
+    NGINX -->|/org| OrgAPI
+    NGINX -->|/keycard| KeycardAPI
+    NGINX -->|/iam| IAMAPI
+
+    ClientA -->|REST| NGINX
+    ClientB -->|REST| NGINX
+    ClientC -->|REST| NGINX
+```
+
+## 3. Component Diagram (Level 3)
+
+```mermaid
+  graph TD
+    subgraph SyncService
+        CronJob[Cron Job]
+        DataFetcher[Data Fetcher - calls External API]
+        ChangeDetector[Change Detection - Compares hashes or diffs]
+        Updater[Updater - Performs upserts into PostgreSQL]
+        DataPusher[Data Pusher - Pushes to Redis via BridgeLink]
+    end
+
+    CronJob --> DataFetcher
+    DataFetcher --> ChangeDetector
+    ChangeDetector --> Updater
+    Updater --> PostgreSQL
+    ChangeDetector -->|Changed Records| DataPusher
+    DataPusher --> Cache
+
+    PostgreSQL -->|Detect Changes| BridgeLink
+```
+
+## 4. Code Diagram (Level 4)
+```mermaid
+  classDiagram
+    class SyncService {
+        +fetchData()
+        +detectChanges()
+        +pushChangesToCache()
+    }
+    class DataFetcher {
+        +fetchDataFromAPI()
+    }
+    class ChangeDetector {
+        +compareHashes()
+        +computeDiffs()
+    }
+    class Updater {
+        +performUpsert()
+    }
+    class DataPusher {
+        +pushToCache()
+    }
+
+```
