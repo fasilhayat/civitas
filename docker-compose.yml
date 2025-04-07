@@ -1,7 +1,7 @@
 services:
   nginx:
     image: nginx:latest
-    container_name: proxy
+    container_name: gateway
     ports:
       - "80:80"
       - "443:443"
@@ -10,9 +10,9 @@ services:
     depends_on:
       - civitas-api
 
-
   civitas-api:
     image: civitas-api
+    container_name: api
     build:
       context: .
       dockerfile: Civitas.Api/Dockerfile
@@ -21,6 +21,18 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
 
+  redis:
+    image: redis/redis-stack:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+      - "8001:8001" # Redis Stack web UI
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:
 
 networks:
   default:
