@@ -332,9 +332,9 @@ graph TD
   NGINX -->|/keycard| KeycardAPI
   NGINX -->|/iam| IAMAPI
 
-  ClientA -->|REST/GraphQL| NGINX
-  ClientB -->|REST/GraphQL| NGINX
-  ClientC -->|REST/GraphQL| NGINX
+  ClientA -->|REST| NGINX
+  ClientB -->|REST| NGINX
+  ClientC -->|REST| NGINX
 
 ```
 
