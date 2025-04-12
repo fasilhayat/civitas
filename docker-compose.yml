@@ -1,12 +1,17 @@
 services:
   nginx:
-    image: nginx:latest
+    image: civitas-proxy:${PROXY_VERSION}
     container_name: gateway
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:8080"
+      - "9443:9443"
+    env_file:
+      - ./conf/nginx/env/dev.env
     volumes:
-      - ./conf/nginx.conf:/etc/nginx/nginx.conf
+      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Nginx configuration
+      - ./conf/nginx/default.conf.template:/etc/nginx/templates/default.conf.template
+      - ./certs:/etc/nginx/ssl:ro # Mount certificates for SSL
+      - ./logs/nginx:/var/log/nginx
     depends_on:
       - civitas-api
 
@@ -23,7 +28,7 @@ services:
 
   redis:
     image: redis/redis-stack:latest
-    container_name: redis
+    container_name: civitas-cache
     ports:
       - "6379:6379"
       - "8001:8001" # Redis Stack web UI

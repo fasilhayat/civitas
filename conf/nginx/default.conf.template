@@ -1,0 +1,78 @@
+server {
+    listen 8080;
+    server_name civitas;
+
+    # Redirect all requests to HTTPS
+    return 301 https://$host:9443$request_uri;
+
+    # Optional: Gzip settings (not used during redirect but can be retained for completeness)
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_comp_level 6;
+    gzip_min_length 1100;
+    gzip_buffers 16 8k;
+    gzip_proxied any;
+    gzip_types
+        text/plain
+        text/css
+        text/js
+        text/xml
+        text/javascript
+        application/javascript
+        application/x-javascript
+        application/json
+        application/xml
+        application/rss+xml
+        image/svg+xml;
+}
+
+# HTTPS server on port 9443
+server {
+    listen 9443 ssl;
+    listen [::]:9443 ssl ipv6only=on;
+    server_name civitas;
+
+    ssl_certificate /etc/nginx/ssl/civitas.local.crt;
+    ssl_certificate_key /etc/nginx/ssl/civitas.local.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    gzip on;
+    gzip_disable "msie6";
+
+    gzip_comp_level 6;
+    gzip_min_length 1100;
+    gzip_buffers 16 8k;
+    gzip_proxied any;
+    gzip_types
+    text/plain
+    text/css
+    text/js
+    text/xml
+    text/javascript
+    application/javascript
+    application/x-javascript
+    application/json
+    application/xml
+    application/rss+xml
+    image/svg+xml;
+
+    # Route for fasil
+    location /fasil/ {
+        proxy_pass ${PROXY_PASS_HOMEPAGE};
+        proxy_set_header Host www.fasil.dk;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Static content (index.html, CSS, etc.)
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        add_header Cache-Control no-store;
+    }
+}
