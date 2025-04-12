@@ -5,7 +5,7 @@ FROM nginx:alpine
 COPY ./static/ /usr/share/nginx/html
 
 # Expose ports
-EXPOSE 8080
+EXPOSE 9090
 EXPOSE 9443
 
 # Start Nginx when the container runs
