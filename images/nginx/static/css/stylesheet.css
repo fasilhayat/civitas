@@ -48,6 +48,20 @@ ul li {
     margin: 5px 0;
 }
 
+/* Diagram Image Styling */
+.diagram {
+    margin-top: 20px;
+    text-align: center;
+    position: relative;
+    cursor: crosshair;
+}
+
+.diagram img {
+    max-width: 100%;
+    height: auto;
+    transition: transform 0.2s;
+}
+
 /* Link Styling */
 a {
     color: #1cf000e6; /* Light green for links */
