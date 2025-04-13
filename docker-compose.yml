@@ -3,7 +3,7 @@ services:
     image: civitas-proxy:${PROXY_VERSION}
     container_name: gateway
     ports:
-      - "9090:9090"
+      - "9091:9091"
       - "9443:9443"
     env_file:
       - ./conf/nginx/env/dev.env
