@@ -39,7 +39,6 @@ restart-%:
 # Clean volumes (WARNING: removes Redis data too)
 clean:
 	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) down --volumes
-	docker volume prune -f # Remove unused Docker volumes
 
 # Show container status
 ps:
