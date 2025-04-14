@@ -3,29 +3,29 @@
 using Application.Services;
 
 /// <summary>
-/// Endpoints for the Employee API. Handles all requests related to Employee.
+/// Endpoints for the Salary API. Handles all requests related to employees salaries.
 /// </summary>
-public static class EmployeeEndpoint
+public static class SalaryEndpoint
 {
     /// <summary>
-    /// Maps all the endpoints for the Employee API.
+    /// Maps all the endpoints for the Salary API.
     /// </summary>
     /// <param name="endpoints">The endpoint route builder to configure the routes.</param>
-    public static void MapEmployeeEndpoints(this IEndpointRouteBuilder endpoints)
+    public static void MapSalaryEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        var employee = endpoints.MapGroup("/v1/employee").WithTags("Employee");
+        var employee = endpoints.MapGroup("/v1/salary").WithTags("Salary");
 
-        employee.MapGet("/count",
-            static (EmployeeService employeeSevice) => NumberOfEmployees(employeeSevice));
-
+        employee.MapGet("/identity/{id}",
+            static (string id, EmployeeService employeeSevice) => Salary(id, employeeSevice));
     }
 
     /// <summary>
     /// Gets the number of employees associated with a specific Employee by ID.
     /// </summary>
+    /// <param name="id">Id of the employee</param>
     /// <param name="employeeService">The service to handle Employee operations.</param>
     /// <returns>An <see cref="IResult"/> containing the count or an error message if not found.</returns>
-    private static async Task<IResult> NumberOfEmployees(EmployeeService employeeService)
+    private static async Task<IResult> Salary(string id, EmployeeService employeeService)
     {
         var antal = await employeeService.NumberOfEmployeesAsync();
         return antal == -1
