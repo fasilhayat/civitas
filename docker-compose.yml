@@ -29,7 +29,6 @@ services:
       - Kestrel__Certificates__Default__Password=${Kestrel__Certificates__Default__Password}
       - Kestrel__Certificates__Default__Path=${Kestrel__Certificates__Default__Path}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
-      - ConnectionStrings__KenosisConnection=Host=kenosis-db;Port=5432;Database=kenosis;Username=postgres;Password=postgres
       - API_KEY=${API_KEY}
 
   redis:
