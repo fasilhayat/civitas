@@ -15,21 +15,19 @@ public static class SalaryEndpoint
     {
         var employee = endpoints.MapGroup("/v1/salary").WithTags("Salary");
 
-        employee.MapGet("/identity/{id}",
-            static (string id, EmployeeService employeeSevice) => Salary(id, employeeSevice));
+        employee.MapGet("/identity/{identity}",
+            static (long identity, SalaryService salaryService) => Salary(identity, salaryService));
     }
 
     /// <summary>
-    /// Gets the number of employees associated with a specific Employee by ID.
+    /// Gets the salary information of an employee associated with a specific ID.
     /// </summary>
-    /// <param name="id">Id of the employee</param>
-    /// <param name="employeeService">The service to handle Employee operations.</param>
+    /// <param name="identity">Id of the employee</param>
+    /// <param name="salaryService">The service to handle Employee operations.</param>
     /// <returns>An <see cref="IResult"/> containing the count or an error message if not found.</returns>
-    private static async Task<IResult> Salary(string id, EmployeeService employeeService)
+    private static async Task<IResult> Salary(long identity, SalaryService salaryService)
     {
-        var antal = await employeeService.NumberOfEmployeesAsync();
-        return antal == -1
-            ? Results.Content("Employeer not found", contentType: "application/json", statusCode: 404)
-            : Results.Content(antal.ToString(), contentType: "application/json", statusCode: 200);
+        var salary = await salaryService.GetEmployeeSalaryAsync(identity);
+        return salary == null ? Results.Json(new { message = "Employee not found" }, statusCode: 404) : Results.Json(salary, statusCode: 200);
     }
 }

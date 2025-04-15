@@ -15,19 +15,51 @@ public static class EmployeeEndpoint
     {
         var employee = endpoints.MapGroup("/v1/employee").WithTags("Employee");
 
+        employee.MapGet("/list",
+            static (EmployeeService employeeSevice) => GetEmployees(employeeSevice));
+
+        employee.MapGet("/identity/{identity}",
+        static (long identity, EmployeeService employeeSevice) => GetEmployee(identity, employeeSevice));
+
         employee.MapGet("/count",
-            static (EmployeeService employeeSevice) => NumberOfEmployees(employeeSevice));
+            static (EmployeeService employeeSevice) => GetNumberOfEmployees(employeeSevice));
 
     }
+
+    /// <summary>
+    /// Gets list of employees.
+    /// </summary>
+    /// <param name="employeeService">The service to handle Employee operations.</param>
+    /// <returns>An <see cref="IResult"/> containing the count or an error message if not found.</returns>
+    private static async Task<IResult> GetEmployees(EmployeeService employeeService)
+    {
+        var employees = await employeeService.GetEmployeesAsync();
+
+        var enumerable = employees.ToList();
+        return !enumerable.Any() ? Results.Json(new { message = "Employees not found" }, statusCode: 404) : Results.Json(enumerable, statusCode: 200);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="identity"></param>
+    /// <param name="employeeService"></param>
+    /// <returns></returns>
+    private static async Task<IResult> GetEmployee(long identity, EmployeeService employeeService)
+    {
+        var employee = await employeeService.GetEmployeeAsync(identity);
+        return employee == null ? Results.Json(new { message = "Employee not found" }, statusCode: 404) : Results.Json(employee, statusCode: 200);
+    }
+
 
     /// <summary>
     /// Gets the number of employees associated with a specific Employee by ID.
     /// </summary>
     /// <param name="employeeService">The service to handle Employee operations.</param>
     /// <returns>An <see cref="IResult"/> containing the count or an error message if not found.</returns>
-    private static async Task<IResult> NumberOfEmployees(EmployeeService employeeService)
+    private static async Task<IResult> GetNumberOfEmployees(EmployeeService employeeService)
     {
-        var antal = await employeeService.NumberOfEmployeesAsync();
+        var antal = await employeeService.GetNumberOfEmployeesAsync();
         return antal == -1
             ? Results.Content("Employeer not found", contentType: "application/json", statusCode: 404)
             : Results.Content(antal.ToString(), contentType: "application/json", statusCode: 200);

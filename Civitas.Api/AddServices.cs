@@ -26,6 +26,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<EmployeeService>();
 
+        services.AddScoped<ISalaryRepository, SalaryRepository>();
+        services.AddScoped<SalaryService>();
+
         return services;
     }
 

@@ -8,7 +8,7 @@ public class Employee
     /// <summary>
     /// Gets the unique identifier for the employee.
     /// </summary>
-    public int Id { get; init; }
+    public long Id { get; init; }
 
     /// <summary>
     /// Gets the first name of an emmployee.

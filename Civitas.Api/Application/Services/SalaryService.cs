@@ -1,0 +1,34 @@
+namespace Civitas.Api.Application.Services;
+
+using Core.Entities;
+using Core.Interfaces;
+
+/// <summary>
+/// 
+/// </summary>
+public class SalaryService
+{
+    /// <summary>
+    /// 
+    /// </summary>
+    private readonly ISalaryRepository _salaryRepository;
+
+    /// <summary>
+    /// Default constructor.
+    /// </summary>
+    /// <param name="salaryRepository"></param>
+    public SalaryService(ISalaryRepository salaryRepository)
+    {
+        _salaryRepository = salaryRepository;
+    }
+    
+    /// <summary>
+    /// Get employee asynchronously.
+    /// </summary>
+    /// <param name="identity">The identity of the employee</param>
+    /// <returns></returns>
+    public async Task<Salary> GetEmployeeSalaryAsync(long identity)
+    {
+        return await _salaryRepository.GetEmployeeSalaryAsync(identity);
+    }
+}
