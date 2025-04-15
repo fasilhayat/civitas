@@ -20,7 +20,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
         // DbContext registration for dependency injection
-        services.AddScoped(_ => new DbContext(configuration.GetConnectionString("CivitasConnection")));
+        //services.AddScoped(_ => new DbContext(configuration.GetConnectionString("CivitasConnection")));
 
         // Register repositories and service classes for dependency injection
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();

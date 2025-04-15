@@ -1,161 +1,47 @@
-﻿using Npgsql;
+﻿namespace Civitas.Api.Infrastructure.Data;
 
-namespace Civitas.Api.Infrastructure.Data;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
 
-using System.Data;
-
-/// <summary>
-/// A simple database context class to handle database connections and queries.
-/// </summary>
-public class DbContext : IDisposable
+public class DbContext : IDbContext
 {
-    /// <summary>
-    /// The connection string used to connect to the database.
-    /// </summary>
-    private readonly string _connectionString;
+    private readonly IDistributedCache _cache;
 
-    /// <summary>
-    /// The active database connection. Can be null if no connection is currently open.
-    /// </summary>
-    private NpgsqlConnection? _connection;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DbContext"/> class with the specified connection string.
-    /// </summary>
-    /// <param name="connectionString">The connection string to the database.</param>
-    /// <exception cref="ArgumentNullException">Thrown if the connection string is null.</exception>
-    public DbContext(string? connectionString)
+    public DbContext(IDistributedCache cache)
     {
-        _connectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+        _cache = cache;
     }
 
-    /// <summary>
-    /// Executes a database function and returns the results as a <see cref="DataTable"/> asynchronously.
-    /// </summary>
-    /// <param name="functionName">The name of the database function to execute.</param>
-    /// <param name="parameters">The parameters to pass to the function.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the function.</returns>
-    /// <exception cref="ArgumentException">Thrown if the function name is null or empty.</exception>
-    public async Task<DataTable> ExecuteFunctionAsync(string functionName, params NpgsqlParameter[] parameters)
+    public void Delete(IDataKey key)
     {
-        if (string.IsNullOrWhiteSpace(functionName))
-            throw new ArgumentException("Function name cannot be null or empty.", nameof(functionName));
+        this.ClearData(key);
+    }
 
-        // Construct the SQL to call the function
-        var sql = $"SELECT * FROM {functionName}";
+    public T? GetData<T>(IDataKey dataKey) where T : class
+    {
+        var document = _cache.Get(dataKey.Identifier);
+        var cahchedData = document != null ? JsonSerializer.Deserialize<T>(document) : null;
+        return cahchedData;
+    }
 
-        // Add parameters to the SQL query if provided
-        if (parameters is { Length: > 0 })
+    public T SaveData<T>(IDataKey key, T o) where T : class
+    {
+        var cachePolicy = new DistributedCacheEntryOptions
         {
-            var paramList = string.Join(", ", parameters.Select(p =>
-            {
-                if (p.Value is int or long or double or decimal or float)
-                    return $"{p.ParameterName} => {p.Value}";
-
-                var value = p.Value?.ToString()?.Replace("'", "''");
-                return $"{p.ParameterName} => '{value}'";
-            }));
-            sql += $"({paramList})";
-        }
-
-        await OpenConnectionAsync();
-        await using var command = new NpgsqlCommand(sql, _connection)
-        {
-            CommandType = CommandType.Text
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5000),
         };
-
-        if (parameters is { Length: > 0 }) command.Parameters.AddRange(parameters);
-
-        using var adapter = new NpgsqlDataAdapter(command);
-        var result = new DataTable();
-        await Task.Run(() => adapter.Fill(result));
-        CloseConnection();
-
-        return result;
+        var serializedData = JsonSerializer.SerializeToUtf8Bytes(o);
+        _cache.Set(key.Identifier, serializedData, cachePolicy);
+        return o;
     }
 
-    /// <summary>
-    /// Executes a stored procedure and returns the results as a <see cref="DataTable"/> asynchronously.
-    /// </summary>
-    /// <param name="procedureName">The name of the stored procedure to execute.</param>
-    /// <param name="parameters">The parameters to pass to the stored procedure.</param>
-    /// <returns>A <see cref="DataTable"/> containing the results of the stored procedure.</returns>
-    /// <exception cref="ArgumentException">Thrown if the procedure name is null or empty.</exception>
-    public async Task<DataTable> ExecuteStoredProcedureAsync(string procedureName, params NpgsqlParameter[] parameters)
+    public void ClearData(IDataKey key)
     {
-        if (string.IsNullOrWhiteSpace(procedureName))
-            throw new ArgumentException("Procedure name cannot be null or empty.", nameof(procedureName));
-
-        await OpenConnectionAsync();
-        await using var command = new NpgsqlCommand(procedureName, _connection)
-        {
-            CommandType = CommandType.StoredProcedure
-        };
-
-        if (parameters is { Length: > 0 })
-            command.Parameters.AddRange(parameters);
-
-        using var adapter = new NpgsqlDataAdapter(command);
-        var result = new DataTable();
-        await Task.Run(() => adapter.Fill(result));
-
-        CloseConnection();
-        return result;
+        _cache.Remove(key.Identifier);
     }
 
-    /// <summary>
-    /// Executes a scalar database query and returns the result as a specified value type asynchronously.
-    /// </summary>
-    /// <typeparam name="T">The type of the scalar result.</typeparam>
-    /// <param name="query">The query to execute.</param>
-    /// <param name="parameters">The parameters to pass to the query.</param>
-    /// <returns>The scalar result of the query.</returns>
-    /// <exception cref="ArgumentException">Thrown if the query is null or empty.</exception>
-    /// <exception cref="InvalidOperationException">Thrown if the query result is null.</exception>
-    public async Task<T> ExecuteScalarFunctionAsync<T>(string query, params NpgsqlParameter[]? parameters) where T : struct
+    public void ClearAllData()
     {
-        if (string.IsNullOrWhiteSpace(query))
-            throw new ArgumentException("Query cannot be null or empty.", nameof(query));
-
-        await OpenConnectionAsync();
-
-        await using var command = new NpgsqlCommand(query, _connection);
-        if (parameters != null)
-            command.Parameters.AddRange(parameters);
-
-        var result = await command.ExecuteScalarAsync();
-
-        CloseConnection();
-        return (T)(result ?? throw new InvalidOperationException());
-    }
-
-    /// <summary>
-    /// Releases the resources used by this instance of <see cref="DbContext"/>.
-    /// </summary>
-    public void Dispose()
-    {
-        CloseConnection();
-        _connection?.Dispose();
-    }
-
-    /// <summary>
-    /// Opens the database connection asynchronously if it is not already open.
-    /// </summary>
-    /// <returns>A task that represents the asynchronous operation.</returns>
-    private async Task OpenConnectionAsync()
-    {
-        _connection ??= new NpgsqlConnection(_connectionString);
-
-        if (_connection.State != ConnectionState.Open)
-            await _connection.OpenAsync();
-    }
-
-    /// <summary>
-    /// Closes the database connection if it is open.
-    /// </summary>
-    private void CloseConnection()
-    {
-        if (_connection?.State == ConnectionState.Open)
-            _connection.Close();
+        throw new NotImplementedException();
     }
 }
