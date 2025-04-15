@@ -22,9 +22,15 @@ services:
       context: .
       dockerfile: Civitas.Api/Dockerfile
     ports:
-      - "8080:80"
+      - "7080:7080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
+      - SSL_CERTIFICATE_PATH=${Kestrel__Certificates__Default__Path}
+      - Kestrel__Certificates__Default__Password=${Kestrel__Certificates__Default__Password}
+      - Kestrel__Certificates__Default__Path=${Kestrel__Certificates__Default__Path}
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ConnectionStrings__KenosisConnection=Host=kenosis-db;Port=5432;Database=kenosis;Username=postgres;Password=postgres
+      - API_KEY=${API_KEY}
 
   redis:
     image: redis/redis-stack:latest
