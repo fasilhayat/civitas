@@ -8,6 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddAuthorization();
 
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+});
+
 var cultureConfig = builder.Configuration.GetSection("CultureSettings");
 
 var cultureInfo = new CultureInfo(cultureConfig["Culture"]!)
@@ -22,7 +27,6 @@ var cultureInfo = new CultureInfo(cultureConfig["Culture"]!)
 // Apply the culture globally
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
-
 
 // Add Swagger
 if (builder.Environment.IsDevelopment())
@@ -42,6 +46,7 @@ app.UseAuthorization();
 
 // Map endpoints
 app.MapEmployeeEndpoints();
+app.MapAccessControlEndpoints();
 app.MapSalaryEndpoints();
 
 // Start the application

@@ -12,13 +12,13 @@ public class EmployeeRepository : IEmployeeRepository
     /// <summary>
     /// 
     /// </summary>
-    private readonly DbContext _context;
+    private readonly IDbContext _context;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="context"></param>
-    public EmployeeRepository(DbContext context)
+    public EmployeeRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }

@@ -4,18 +4,21 @@ using Core.Entities;
 using Core.Interfaces;
 using Data;
 
+/// <summary>
+/// Repository for managing salary information.
+/// </summary>
 public class SalaryRepository : ISalaryRepository
 {
     /// <summary>
     /// 
     /// </summary>
-    private readonly DbContext _context;
+    private readonly IDbContext _context;
 
     /// <summary>
     /// 
     /// </summary>
     /// <param name="context"></param>
-    public SalaryRepository(DbContext context)
+    public SalaryRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
