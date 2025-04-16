@@ -4,15 +4,18 @@ using Core.Entities;
 using Core.Interfaces;
 using Data;
 
+/// <summary>
+/// Repository for managing access control data.
+/// </summary>
 public class AccessControlRepository : IAccessControlRepository
 {
     /// <summary>
-    /// 
+    /// The database context used for data access.
     /// </summary>
     private readonly IDbContext _context;
 
     /// <summary>
-    /// 
+    /// The constructor for the AccessControlRepository class.
     /// </summary>
     /// <param name="context"></param>
     public AccessControlRepository(IDbContext context)
