@@ -2,6 +2,9 @@
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 USER $APP_UID
 WORKDIR /app
+
+COPY ./Civitas.Api/civitas.pfx /app/civitas.pfx
+
 EXPOSE 7080
 EXPOSE 7081
 

@@ -23,9 +23,9 @@ services:
       dockerfile: Civitas.Api/Dockerfile
     ports:
       - "7080:7080"
+      - "7081:7081"
     environment:
       - ASPNETCORE_URLS=${ASPNETCORE_URLS}
-      - SSL_CERTIFICATE_PATH=${Kestrel__Certificates__Default__Path}
       - Kestrel__Certificates__Default__Password=${Kestrel__Certificates__Default__Password}
       - Kestrel__Certificates__Default__Path=${Kestrel__Certificates__Default__Path}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
