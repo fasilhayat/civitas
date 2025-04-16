@@ -5,17 +5,17 @@ using Core.Interfaces;
 using Data;
 
 /// <summary>
-/// 
+/// The repository for managing employee data.
 /// </summary>
 public class EmployeeRepository : IEmployeeRepository
 {
     /// <summary>
-    /// 
+    /// The database context used for data access.
     /// </summary>
     private readonly IDbContext _context;
 
     /// <summary>
-    /// 
+    /// The constructor for the EmployeeRepository class.
     /// </summary>
     /// <param name="context"></param>
     public EmployeeRepository(IDbContext context)
@@ -43,6 +43,10 @@ public class EmployeeRepository : IEmployeeRepository
         return employees.Count();
     }
 
+    /// <summary>
+    /// Retrieves all employees asynchronously from the repository.
+    /// </summary>
+    /// <returns></returns>
     private async Task<IEnumerable<Employee>> EmployeesAsync()
     {
         // Simulate async work (e.g., like querying a DB)

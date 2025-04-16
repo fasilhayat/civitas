@@ -10,12 +10,12 @@ using Data;
 public class SalaryRepository : ISalaryRepository
 {
     /// <summary>
-    /// 
+    /// The database context used for data access.
     /// </summary>
     private readonly IDbContext _context;
 
     /// <summary>
-    /// 
+    /// The constructor for the SalaryRepository class.
     /// </summary>
     /// <param name="context"></param>
     public SalaryRepository(IDbContext context)
