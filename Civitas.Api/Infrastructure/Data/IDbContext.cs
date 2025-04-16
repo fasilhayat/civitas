@@ -1,12 +1,14 @@
-﻿namespace Civitas.Api.Infrastructure.Data;
+﻿using Civitas.Api.Core.Interfaces;
 
-public interface IDbContext : IDeletionPolicy
+namespace Civitas.Api.Infrastructure.Data;
+
+public interface IDbContext 
 {
-    T? GetData<T>(IDataKey key) where T : class;
+    Task<T?> GetData<T>(IDataKey key) where T : class;
 
-    T SaveData<T>(IDataKey key, T o) where T : class;
+    Task<T> SaveData<T>(IDataKey key, T o) where T : class;
 
-    void ClearData(IDataKey key);
+    Task ClearData(IDataKey key);
 
-    void ClearAllData();
+    Task Delete(IDataKey key);
 }
