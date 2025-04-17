@@ -58,6 +58,16 @@ public class EmployeeRepository : IEmployeeRepository
             new() { Id = 2, FirstName = "Bob", LastName = "Smith" }
         };
 
+        // Retrieving a specific employee using DataKey DEBUG code
+        var datakey = new DataKey("datakey-551");
+        var employee = await _context.GetData<Employee>(datakey);
+
+        if (employee != null)
+        {
+            employees.Add(employee);
+        }
+        // Retrieving a specific employee using DataKey DEBUG code
+
         return employees;
     }
 

@@ -9,6 +9,8 @@ public interface IDbContext
 {
     Task<T?> GetData<T>(IDataKey key) where T : class;
 
+    Task<T?> GetHashData<T>(IDataKey key) where T : class;
+
     Task SaveData<T>(IDataKey key, T obj) where T : class;
 
     Task ClearData(IDataKey key);
