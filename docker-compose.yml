@@ -32,8 +32,7 @@ services:
       - Kestrel__Certificates__Default__Path=${Kestrel__Certificates__Default__Path}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - API_KEY=${API_KEY}
-      - REDIS__HOST=civitas-cache
-      - REDIS__PORT=6379
+      - Redis__ConnectionString=civitas-cache:6379
     networks:
       - civitas
 
