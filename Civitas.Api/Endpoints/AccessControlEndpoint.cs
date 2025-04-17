@@ -1,6 +1,6 @@
-﻿using Civitas.Api.Application.Services;
+﻿namespace Civitas.Api.Endpoints;
 
-namespace Civitas.Api.Endpoints;
+using Application.Services;
 
 /// <summary>
 /// Access Control Endpoint.
