@@ -34,9 +34,9 @@ public class DbContext : IDbContext
     }
 
     /// <summary>
-    /// Retrieves a value from the database using the specified key.
+    /// Deletes the value from the database using the specified key.
     /// </summary>
-    /// <param name="key">The key used to access the value.</param>
+    /// <param name="key">The key used to find the value.</param>
     /// <returns>Returns the value associated with the key, or null if not found.</returns>
     public async Task Delete(IDataKey key)
     {
@@ -87,9 +87,10 @@ public class DbContext : IDbContext
 
 
     /// <summary>
-    /// Saves a value to the database using the specified key and type.
+    /// Clears the value to the database using the specified key and type.
     /// </summary>
     /// <param name="key">The key used to access the value.</param>
+    /// <returns></returns>
     public async Task ClearData(IDataKey key)
     {
         await _redisDb.KeyDeleteAsync(key.Identifier);

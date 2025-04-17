@@ -28,13 +28,18 @@ public class EmployeeRepository : IEmployeeRepository
         return await EmployeesAsync();
     }
 
+    /// <summary>
+    /// Get an <see cref="Employee"/>.
+    /// </summary>
+    /// <param name="identity">The id of the employee to be retrieved</param>
+    /// <returns></returns>
     public async Task<Employee> GetEmployeeAsync(long identity)
     {
        return await EmployeeAsync(identity);
     }
 
     /// <summary>
-    /// 
+    /// Retrievies the number of employees.
     /// </summary>
     /// <returns></returns>
     public async Task<int> GetNumberOfEmployeesAsync()
