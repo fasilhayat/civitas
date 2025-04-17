@@ -20,11 +20,11 @@ public static class AccessControlEndpoint
     }
 
     /// <summary>
-    /// 
+    /// Gets the access control information of an employee associated with a specific ID.
     /// </summary>
-    /// <param name="identity"></param>
-    /// <param name="accessControlSevice"></param>
-    /// <returns></returns>
+    /// <param name="identity">The identity of the employee</param>
+    /// <param name="accessControlSevice">The service to handle Employee operations.</param>
+    /// <returns>The access control information of the employee.</returns>
     private static async Task<IResult> GetEmployeeAccessControl(long identity, AccessControlService accessControlSevice)
     {
         var accessControl = await accessControlSevice.GetEmployeeAccessControl(identity);
