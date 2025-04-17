@@ -21,6 +21,9 @@ build-local: build-nginx-image
 run-local: build-local
 	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) up -d
 
+run-local-debug: build-local
+	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) up -d redis
+
 # Rebuild civitas-api and restart ALL services
 rebuild: down build up
 
