@@ -8,12 +8,14 @@ services:
     env_file:
       - ./conf/nginx/env/dev.env
     volumes:
-      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf:ro # Nginx configuration
+      - ./conf/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./conf/nginx/default.conf.template:/etc/nginx/templates/default.conf.template
-      - ./certs:/etc/nginx/ssl:ro # Mount certificates for SSL
+      - ./certs:/etc/nginx/ssl:ro
       - ./logs/nginx:/var/log/nginx
     depends_on:
       - civitas-api
+    networks:
+      - civitas
 
   civitas-api:
     image: civitas-api
@@ -30,20 +32,26 @@ services:
       - Kestrel__Certificates__Default__Path=${Kestrel__Certificates__Default__Path}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - API_KEY=${API_KEY}
+      - REDIS__HOST=civitas-cache
+      - REDIS__PORT=6379
+    networks:
+      - civitas
 
   redis:
     image: redis/redis-stack:latest
     container_name: civitas-cache
     ports:
       - "6379:6379"
-      - "8001:8001" # Redis Stack web UI
+      - "8001:8001"
     volumes:
       - redis-data:/data
     restart: unless-stopped
+    networks:
+      - civitas
 
 volumes:
   redis-data:
 
 networks:
-  default:
+  civitas:
     driver: bridge
