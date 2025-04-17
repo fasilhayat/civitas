@@ -18,7 +18,7 @@ public static class EmployeeEndpoint
         employee.MapGet("/list",
             static (EmployeeService employeeSevice) => GetEmployees(employeeSevice));
 
-        employee.MapGet("/identity/{identity}",
+        employee.MapGet("/id/{identity}",
         static (long identity, EmployeeService employeeSevice) => GetEmployee(identity, employeeSevice));
 
         employee.MapGet("/count",

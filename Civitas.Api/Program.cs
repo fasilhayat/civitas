@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Civitas.Api;
 using Civitas.Api.Endpoints;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,13 +9,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddAuthorization();
 
-builder.Services.AddStackExchangeRedisCache(options =>
+// Add Redis ConnectionMultiplexer using the configuration
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 {
-    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    var configuration = builder.Configuration.GetValue<string>("Redis:ConnectionString");
+    if (string.IsNullOrEmpty(configuration))
+    {
+        throw new ArgumentNullException($"Redis connection string is missing in configuration.");
+    }
+
+    return ConnectionMultiplexer.Connect(configuration);
 });
 
 var cultureConfig = builder.Configuration.GetSection("CultureSettings");
-
 var cultureInfo = new CultureInfo(cultureConfig["Culture"]!)
 {
     DateTimeFormat =
@@ -38,7 +45,6 @@ var app = builder.Build();
 
 // Use Middlewares
 app.UseMiddlewareConfiguration(app.Environment, builder.Configuration);
-
 
 // Add routing middleware
 app.UseRouting();

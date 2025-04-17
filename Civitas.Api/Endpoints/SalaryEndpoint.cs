@@ -15,7 +15,7 @@ public static class SalaryEndpoint
     {
         var employee = endpoints.MapGroup("/v1/salary").WithTags("Salary");
 
-        employee.MapGet("/identity/{identity}",
+        employee.MapGet("/id/{identity}",
             static (long identity, SalaryService salaryService) => GetEmployeeSalary(identity, salaryService));
     }
 

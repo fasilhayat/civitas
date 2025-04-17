@@ -14,7 +14,7 @@ public static class AccessControlEndpoint
     {
         var employee = endpoints.MapGroup("/v1/access").WithTags("AccessControl");
 
-        employee.MapGet("/identity/{identity}",
+        employee.MapGet("/id/{identity}",
             static (long identity, AccessControlService accessControlSevice) => GetEmployeeAccessControl(identity, accessControlSevice));
 
     }

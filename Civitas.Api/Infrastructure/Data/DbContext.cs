@@ -1,7 +1,7 @@
 ﻿namespace Civitas.Api.Infrastructure.Data;
 
 using Core.Interfaces;
-using Microsoft.Extensions.Caching.Distributed;
+using StackExchange.Redis;
 using System.Text.Json;
 
 /// <summary>
@@ -10,66 +10,88 @@ using System.Text.Json;
 public class DbContext : IDbContext
 {
     /// <summary>
-    /// The distributed cache used for data storage.
+    /// The Redis database used for data access.
     /// </summary>
-    private readonly IDistributedCache _cache;
+    private readonly IDatabase _redisDb;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="DbContext"/> class with the specified distributed cache.
+    /// The default time-to-live (TTL) for cached items in the database.
     /// </summary>
-    /// <param name="cache"></param>
-    public DbContext(IDistributedCache cache)
+    private readonly TimeSpan _defaultTtl;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DbContext"/> class.
+    /// </summary>
+    /// <param name="redis"> The Redis connection multiplexer used to access the database.</param>
+    /// <param name="configuration"></param>
+    public DbContext(IConnectionMultiplexer redis, IConfiguration configuration)
     {
-        _cache = cache;
+        _redisDb = redis.GetDatabase();
+
+        // Read TTL from config (in minutes)
+        var ttlMinutes = configuration.GetValue<int>("Redis:DefaultTtlMinutes", 5000);
+        _defaultTtl = TimeSpan.FromMinutes(ttlMinutes);
     }
 
     /// <summary>
-    /// Deletes the data associated with the specified key.
+    /// Retrieves a value from the database using the specified key.
     /// </summary>
-    /// <param name="key">The key to identify the data to be deleted.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <param name="key">The key used to access the value.</param>
+    /// <returns>Returns the value associated with the key, or null if not found.</returns>
     public async Task Delete(IDataKey key)
     {
-        await ClearData(key);
+        await _redisDb.KeyDeleteAsync(key.Identifier);
     }
 
     /// <summary>
-    /// Retrieves the data associated with the specified key.
+    /// Retrieves a value from the database using the specified key.
     /// </summary>
-    /// <typeparam name="T">The type of the data to be retrieved.</typeparam>
-    /// <param name="dataKey">The key to identify the data.</param>
-    /// <returns>Returns the data of type <typeparamref name="T"/> if found; otherwise, null.</returns>
+    /// <typeparam name="T">The type of the value to retrieve.</typeparam>
+    /// <param name="dataKey">The key used to access the value.</param>
+    /// <returns>The value associated with the key, or null if not found.</returns>
     public async Task<T?> GetData<T>(IDataKey dataKey) where T : class
     {
-        var document = await _cache.GetAsync(dataKey.Identifier);
-        return document != null ? JsonSerializer.Deserialize<T>(document) : null;
+        var value = await _redisDb.StringGetAsync(dataKey.Identifier);
+        return value.HasValue ? JsonSerializer.Deserialize<T>(value!) : null;
     }
 
     /// <summary>
-    /// Saves the specified data associated with the given key.
+    /// Retrieves a value from the database using the specified key and type.
     /// </summary>
-    /// <typeparam name="T">The type of the data to be saved.</typeparam>
-    /// <param name="key">The key to identify the data.</param>
-    /// <param name="o">The data to be saved.</param>
-    /// <returns>Returns the saved data of type <typeparamref name="T"/>.</returns>
-    public async Task<T> SaveData<T>(IDataKey key, T o) where T : class
+    /// <typeparam name="T">The type of the value to retrieve.</typeparam>
+    /// <param name="key">The key used to access the value.</param>
+    /// <returns>The value associated with the key, or null if not found.</returns>
+    /// <exception cref="InvalidOperationException"></exception>
+    public async Task<T?> GetHashData<T>(IDataKey key) where T : class
     {
-        var cachePolicy = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5000),
-        };
-        var serializedData = JsonSerializer.SerializeToUtf8Bytes(o);
-        await _cache.SetAsync(key.Identifier, serializedData, cachePolicy);
-        return o;
+        var typeField = typeof(T).FullName;
+        if (string.IsNullOrEmpty(typeField))
+            throw new InvalidOperationException("Could not determine the type name for the hash field.");
+
+        var value = await _redisDb.HashGetAsync(key.Identifier, typeField);
+        return value.HasValue ? JsonSerializer.Deserialize<T>(value!) : null;
     }
 
     /// <summary>
-    /// Clears the data associated with the specified key.
+    /// Saves a value to the database using the specified key.
     /// </summary>
-    /// <param name="key">The key to identify the data to be cleared.</param>
-    /// <returns>Clears the data associated with the specified key.</returns>
+    /// <typeparam name="T">The type of the value to save.</typeparam>
+    /// <param name="key">The key used to access the value.</param>
+    /// <param name="obj">The object to save.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task SaveData<T>(IDataKey key, T obj) where T : class
+    {
+        var serialized = JsonSerializer.Serialize(obj);
+        await _redisDb.StringSetAsync(key.Identifier, serialized, _defaultTtl);
+    }
+
+
+    /// <summary>
+    /// Saves a value to the database using the specified key and type.
+    /// </summary>
+    /// <param name="key">The key used to access the value.</param>
     public async Task ClearData(IDataKey key)
     {
-        await _cache.RemoveAsync(key.Identifier);
+        await _redisDb.KeyDeleteAsync(key.Identifier);
     }
 }
