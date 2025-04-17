@@ -4,12 +4,12 @@ using Core.Entities;
 using Core.Interfaces;
 
 /// <summary>
-/// 
+/// The salary service class.
 /// </summary>
 public class SalaryService
 {
     /// <summary>
-    /// 
+    /// The salary repository.
     /// </summary>
     private readonly ISalaryRepository _salaryRepository;
 

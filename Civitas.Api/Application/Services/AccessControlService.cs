@@ -1,8 +1,11 @@
-﻿using Civitas.Api.Core.Entities;
-using Civitas.Api.Core.Interfaces;
+﻿namespace Civitas.Api.Application.Services;
 
-namespace Civitas.Api.Application.Services;
+using Core.Entities;
+using Core.Interfaces;
 
+/// <summary>
+/// Service class for managing access control.
+/// </summary>
 public class AccessControlService
 {
     /// <summary>

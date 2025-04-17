@@ -1,7 +1,13 @@
 ﻿namespace Civitas.Api.Core.Entities;
 
+/// <summary>
+/// Represents the access level control for an employee.
+/// </summary>
 public class AccessLevelControl
 {
+    /// <summary>
+    /// Unique identifier for the access level control.
+    /// </summary>
     public int Id { get; set; }
 
     /// <summary>
@@ -10,12 +16,12 @@ public class AccessLevelControl
     public long IdentityKey { get; set; }
 
     /// <summary>
-    /// 
+    /// The unique identifier for the department.
     /// </summary>
     public int DepartmentId { get; set; }
 
     /// <summary>
-    /// 
+    /// The name of the access level control.
     /// </summary>
     public string? Name { get; set; }
 

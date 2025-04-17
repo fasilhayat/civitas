@@ -40,11 +40,11 @@ public static class EmployeeEndpoint
     }
 
     /// <summary>
-    /// 
+    /// Gets the employee associated with a specific Employee by ID.
     /// </summary>
-    /// <param name="identity"></param>
-    /// <param name="employeeService"></param>
-    /// <returns></returns>
+    /// <param name="identity">The identity of the employee</param>
+    /// <param name="employeeService">The service to handle Employee operations.</param>
+    /// <returns>Returns the employee information.</returns>
     private static async Task<IResult> GetEmployee(long identity, EmployeeService employeeService)
     {
         var employee = await employeeService.GetEmployeeAsync(identity);

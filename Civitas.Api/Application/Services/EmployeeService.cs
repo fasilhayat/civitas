@@ -4,12 +4,12 @@ using Core.Entities;
 using Core.Interfaces;
 
 /// <summary>
-/// 
+/// The EmployeeService class provides methods to manage employee data.
 /// </summary>
 public class EmployeeService
 {
     /// <summary>
-    /// 
+    /// The repository used to access employee data.
     /// </summary>
     private readonly IEmployeeRepository _employeeRepository;
 
