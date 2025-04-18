@@ -85,6 +85,26 @@ public class DbContext : IDbContext
         await _redisDb.StringSetAsync(key.Identifier, serialized, _defaultTtl);
     }
 
+    /// <summary>
+    /// Saves a value to the database using the specified key.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to save.</typeparam>
+    /// <param name="key">The key used to access the value.</param>
+    /// <param name="obj">The object to save.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    public async Task SaveHashData<T>(IDataKey key, T obj) where T : class
+    {
+        var typeField = typeof(T).FullName;
+
+        var serialized = JsonSerializer.Serialize(obj);
+        await _redisDb.HashSetAsync(key.Identifier, typeField, serialized);
+
+        // Optional: Set a TTL on the entire hash key if _defaultTtl is defined
+        if (_defaultTtl != null)
+        {
+            await _redisDb.KeyExpireAsync(key.Identifier, _defaultTtl);
+        }
+    }
 
     /// <summary>
     /// Clears the value to the database using the specified key and type.

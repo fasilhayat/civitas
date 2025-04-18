@@ -33,6 +33,15 @@ public interface IDbContext
     Task SaveData<T>(IDataKey key, T obj) where T : class;
 
     /// <summary>
+    /// Saves a value to the database using the specified key and type.
+    /// </summary>
+    /// <typeparam name="T">The type of the value to save.</typeparam>
+    /// <param name="key">The key used to save the value.</param>
+    /// <param name="obj">The object to save.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task SaveHashData<T>(IDataKey key, T obj) where T : class;
+
+    /// <summary>
     /// Clears the value to the database using the specified key and type.
     /// </summary>
     /// <param name="key">The key used to access the value.</param>
