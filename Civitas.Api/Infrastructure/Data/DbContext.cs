@@ -110,7 +110,7 @@ public class DbContext : IDbContext
     /// Clears the value to the database using the specified key and type.
     /// </summary>
     /// <param name="key">The key used to access the value.</param>
-    /// <returns></returns>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task ClearData(IDataKey key)
     {
         await _redisDb.KeyDeleteAsync(key.Identifier);
