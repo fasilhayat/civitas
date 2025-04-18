@@ -9,11 +9,24 @@ public class AccessRole
     /// Unique identifier for the access role.
     /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public string? ThirdPartyId { get; set; }
 
-    // Optional: If you want to include a reference back to AccessLevelControl
+    /// <summary>
+    /// 
+    /// </summary>
     public int AccessLevelControlId { get; set; }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public AccessLevelControl? AccessLevelControl { get; set; }
 }

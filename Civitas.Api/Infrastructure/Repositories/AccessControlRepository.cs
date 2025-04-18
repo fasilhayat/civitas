@@ -17,7 +17,7 @@ public class AccessControlRepository : IAccessControlRepository
     /// <summary>
     /// The constructor for the AccessControlRepository class.
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">The context object.</param>
     public AccessControlRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
