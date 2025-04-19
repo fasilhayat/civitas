@@ -9,14 +9,14 @@ using Core.Interfaces;
 public class AccessControlService
 {
     /// <summary>
-    /// 
+    /// The repository used to access access control data.
     /// </summary>
     private readonly IAccessControlRepository _accessControlRepository;
 
     /// <summary>
     /// Default constructor.
     /// </summary>
-    /// <param name="accessControlRepository"></param>
+    /// <param name="accessControlRepository">The access control repository.</param>
     public AccessControlService(IAccessControlRepository accessControlRepository)
     {
         _accessControlRepository = accessControlRepository;
@@ -26,7 +26,7 @@ public class AccessControlService
     /// Get employee access control asynchronously.
     /// </summary>
     /// <param name="identity">The identity of the employee</param>
-    /// <returns></returns>
+    /// <returns>Returns the access control for the employee</returns>
     public async Task<AccessLevelControl> GetEmployeeAccessControl(long identity)
     {
         return await _accessControlRepository.GetEmployeeAccessControl(identity);

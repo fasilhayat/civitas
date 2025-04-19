@@ -16,7 +16,7 @@ public class EmployeeService
     /// <summary>
     /// Default constructor.
     /// </summary>
-    /// <param name="employeeRepository"></param>
+    /// <param name="employeeRepository">The employee repository.</param>
     public EmployeeService(IEmployeeRepository employeeRepository)
     {
         _employeeRepository = employeeRepository;
@@ -25,7 +25,7 @@ public class EmployeeService
     /// <summary>
     /// Get number of employees asynchronously.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Returns the full list of employees</returns>
     public async Task<IEnumerable<Employee>> GetEmployeesAsync()
     {
         return await _employeeRepository.GetEmployeesAsync();
@@ -35,7 +35,7 @@ public class EmployeeService
     /// Get employee asynchronously.
     /// </summary>
     /// <param name="identity">The identity of the employee</param>
-    /// <returns></returns>
+    /// <returns>Returnsns the employee based on the identity</returns>
     public async Task<Employee?> GetEmployeeAsync(long identity)
     {
         return await _employeeRepository.GetEmployeeAsync(identity);
@@ -43,7 +43,7 @@ public class EmployeeService
     /// <summary>
     /// Get number of employees asynchronously.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>Returns the number of employees</returns>
     public async Task<int?> GetNumberOfEmployeesAsync()
     {
         return await _employeeRepository.GetNumberOfEmployeesAsync();
