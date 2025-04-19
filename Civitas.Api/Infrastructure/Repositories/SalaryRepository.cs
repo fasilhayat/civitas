@@ -17,7 +17,7 @@ public class SalaryRepository : ISalaryRepository
     /// <summary>
     /// The constructor for the SalaryRepository class.
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">The context object.</param>
     public SalaryRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
