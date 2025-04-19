@@ -21,4 +21,3 @@ public class DataKey : IDataKey
     /// </summary>
     public string Identifier { get; init; }
 }
-

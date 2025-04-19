@@ -14,9 +14,9 @@ public class Salary
     /// Gets the first name of an employee.
     /// </summary>
     public string EmploymentId { get; init; } = default!;
-    
+
     /// <summary>
-    /// 
+    /// The date when the employee is available to start working.
     /// </summary>
     public DateTime? AvailabilityDate { get; init; }
 
@@ -46,7 +46,7 @@ public class Salary
     public int JobTitleId { get; init; }
 
     /// <summary>
-    /// 
+    /// The id of the employee's job type.
     /// </summary>
     public int JobTypeId { get; init; }
 

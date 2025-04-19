@@ -23,7 +23,6 @@ public static class EmployeeEndpoint
 
         employee.MapGet("/count",
             static (EmployeeService employeeSevice) => GetNumberOfEmployees(employeeSevice));
-
     }
 
     /// <summary>
@@ -50,7 +49,6 @@ public static class EmployeeEndpoint
         var employee = await employeeService.GetEmployeeAsync(identity);
         return employee == null ? Results.Json(new { message = "Employee not found" }, statusCode: 404) : Results.Json(employee, statusCode: 200);
     }
-
 
     /// <summary>
     /// Gets the number of employees associated with a specific Employee by ID.
