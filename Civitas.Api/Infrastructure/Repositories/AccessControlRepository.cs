@@ -26,9 +26,9 @@ public class AccessControlRepository : IAccessControlRepository
     /// <summary>
     /// Get access control list asynchronously.
     /// </summary>
-    /// <param name="identity"></param>
-    /// <returns></returns>
-    /// <exception cref="NotImplementedException"></exception>
+    /// <param name="identity">The identity of the employee</param>
+    /// <returns>Returns a list of access roles for the employee.</returns>
+    /// <exception cref="NotImplementedException">Throws not implemented exception.</exception>
     public Task<AccessLevelControl> GetEmployeeAccessControl(long identity)
     {
         // You can later use the 'identity' parameter to filter/lookup if needed
