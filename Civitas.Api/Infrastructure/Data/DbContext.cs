@@ -47,11 +47,11 @@ public class DbContext : IDbContext
     /// Retrieves a value from the database using the specified key.
     /// </summary>
     /// <typeparam name="T">The type of the value to retrieve.</typeparam>
-    /// <param name="dataKey">The key used to access the value.</param>
+    /// <param name="key">The key used to access the value.</param>
     /// <returns>The value associated with the key, or null if not found.</returns>
-    public async Task<T?> GetData<T>(IDataKey dataKey) where T : class
+    public async Task<T?> GetData<T>(IDataKey key) where T : class
     {
-        var value = await _redisDb.StringGetAsync(dataKey.Identifier);
+        var value = await _redisDb.StringGetAsync(key.Identifier);
         return value.HasValue ? JsonSerializer.Deserialize<T>(value!) : null;
     }
 
@@ -99,11 +99,7 @@ public class DbContext : IDbContext
         var serialized = JsonSerializer.Serialize(obj);
         await _redisDb.HashSetAsync(key.Identifier, typeField, serialized);
 
-        // Optional: Set a TTL on the entire hash key if _defaultTtl is defined
-        if (_defaultTtl != null)
-        {
-            await _redisDb.KeyExpireAsync(key.Identifier, _defaultTtl);
-        }
+        await _redisDb.KeyExpireAsync(key.Identifier, _defaultTtl);
     }
 
     /// <summary>

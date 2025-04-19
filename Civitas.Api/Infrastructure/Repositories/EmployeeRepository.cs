@@ -60,7 +60,7 @@ public class EmployeeRepository : IEmployeeRepository
         {
             Id = 1,
             FirstName = "Raistlin",
-            MiddleName = "U.",
+            MiddleName = "L.",
             LastName = "Majere"
         };
         await _context.SaveHashData(key, emp);
