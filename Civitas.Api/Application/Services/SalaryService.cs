@@ -27,7 +27,7 @@ public class SalaryService
     /// </summary>
     /// <param name="identity">The identity of the employee</param>
     /// <returns>Returns the employee salary based on the identity</returns>
-    public async Task<Salary> GetEmployeeSalaryAsync(long identity)
+    public async Task<Salary?> GetEmployeeSalaryAsync(long identity)
     {
         return await _salaryRepository.GetEmployeeSalaryAsync(identity);
     }
