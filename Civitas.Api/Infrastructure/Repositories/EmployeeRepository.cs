@@ -92,6 +92,11 @@ public class EmployeeRepository : IEmployeeRepository
         return employees;
     }
 
+    /// <summary>
+    /// For debugging purposes only. Retrieves a specific employee based on the identity.
+    /// </summary>
+    /// <param name="identity">The unique identifier of the employee.</param>
+    /// <returns>The employee object.</returns>
     private async Task<Employee> EmployeeAsync(long identity)
     {
         // Simulate async work (e.g., like querying a DB)
