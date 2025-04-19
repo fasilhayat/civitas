@@ -60,5 +60,4 @@ public class SalaryRepository : ISalaryRepository
 
         return Task.FromResult(salary);
     }
-
 }
