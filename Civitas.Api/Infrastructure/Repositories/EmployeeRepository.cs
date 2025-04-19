@@ -17,7 +17,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// <summary>
     /// The constructor for the EmployeeRepository class.
     /// </summary>
-    /// <param name="context"></param>
+    /// <param name="context">The context object.</param>
     public EmployeeRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
@@ -32,7 +32,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// Get an <see cref="Employee"/>.
     /// </summary>
     /// <param name="identity">The id of the employee to be retrieved</param>
-    /// <returns></returns>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task<Employee> GetEmployeeAsync(long identity)
     {
        return await EmployeeAsync(identity);
@@ -41,7 +41,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// <summary>
     /// Retrievies the number of employees.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task<int> GetNumberOfEmployeesAsync()
     {
         var employees = await EmployeesAsync();
@@ -51,7 +51,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// <summary>
     /// Retrieves all employees asynchronously from the repository.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task<IEnumerable<Employee>> EmployeesAsync()
     {
         // Save the employees to the database for debug
