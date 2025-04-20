@@ -1,7 +1,7 @@
-﻿using System.Globalization;
-using Civitas.Api;
+﻿using Civitas.Api;
 using Civitas.Api.Endpoints;
 using StackExchange.Redis;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 

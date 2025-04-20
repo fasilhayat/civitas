@@ -1,6 +1,5 @@
 ﻿namespace Civitas.Api.Infrastructure.Repositories;
 
-using Civitas.Api.Infrastructure.Data;
 using Core.Entities;
 using Core.Interfaces;
 using Data;

@@ -31,4 +31,3 @@ public static class AccessControlEndpoint
         return accessControl == null ? Results.Json(new { message = "Access control not found" }, statusCode: 404) : Results.Json(accessControl, statusCode: 200);
     }
 }
-    

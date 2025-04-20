@@ -51,7 +51,7 @@ public class Salary
     public int JobTypeId { get; init; }
 
     /// <summary>
-    /// 
+    /// The amount of salary.
     /// </summary>
     public string SalaryAmount { get; init; } = default!; // kept as string per JSON
 
