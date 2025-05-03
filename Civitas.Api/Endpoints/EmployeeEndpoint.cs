@@ -1,4 +1,5 @@
-﻿using Civitas.Api.Core.Entities;
+﻿using System.Security.Cryptography;
+using Civitas.Api.Core.Entities;
 
 namespace Civitas.Api.Endpoints;
 
@@ -27,7 +28,7 @@ public static class EmployeeEndpoint
             static (EmployeeService employeeSevice) => GetNumberOfEmployees(employeeSevice));
 
         employee.MapPost("/add",
-            static (EmployeeService employeeSevice, Employee employee) => AddEmployee(employeeSevice, employee));
+            static (EmployeeService employeeSevice, string firstName, string? middleName, string lastName) => AddEmployee(employeeSevice, firstName, middleName, lastName));
     }
 
     /// <summary>
@@ -72,11 +73,36 @@ public static class EmployeeEndpoint
     /// Adds a new employee.
     /// </summary>
     /// <param name="employeeService">The service to handle Employee operations.</param>
-    /// <param name="employee">The employee data to added.</param>
+    /// <param name="firstName">The first name of the employee</param>
+    /// <param name="middleName">The middle name of the employee</param>   
+    /// <param name="lastName">The last name of the employee</param>
     /// <returns>An <see cref="IResult"/>Containing the error message if not added.</returns>
-    private static async Task<IResult> AddEmployee(EmployeeService employeeService, Employee employee)
+    private static async Task<IResult> AddEmployee(EmployeeService employeeService, string firstName, string? middleName, string lastName)
     {
+        var employee = new Employee
+        {
+            Id = GetHashBasedChecksum(Guid.NewGuid()),
+            FirstName = firstName,
+            MiddleName = middleName,
+            LastName = lastName
+        };
         await employeeService.AddEmployeeAsync(employee);
-        return Results.Content("Added", contentType: "application/json", statusCode: 200);
+        return Results.Json(
+            new { success = true, employeeId = employee.Id },
+            statusCode: StatusCodes.Status201Created
+        );
+
+    }
+
+    /// <summary>
+    /// For debugging purposes only. Retrieves a specific employee based on the identity. TODO: Delete this method. Not for production.
+    /// </summary>
+    /// <param name="guid"></param>
+    /// <returns></returns>
+    private static int GetHashBasedChecksum(Guid guid)
+    {
+        using var md5 = MD5.Create();
+        byte[] hash = md5.ComputeHash(guid.ToByteArray());
+        return BitConverter.ToInt32(hash, 0);
     }
 }

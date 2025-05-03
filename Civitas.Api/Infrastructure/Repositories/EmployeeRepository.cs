@@ -70,16 +70,9 @@ public class EmployeeRepository : IEmployeeRepository
     /// <returns></returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
-// Save the employees to the database for debug
+        // Save the employees to the database for debug
         var key = new DataKey("datakey-52");
-        var emp = new Employee
-        {
-            Id = 1,
-            FirstName = "Caramon",
-            MiddleName = "L.",
-            LastName = "Majere"
-        };
-        await _context.SaveHashData(key, emp);
+        await _context.SaveHashData(key, employee);
     }
 
     /// <summary>
