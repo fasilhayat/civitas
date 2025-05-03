@@ -18,7 +18,7 @@ public interface IEmployeeRepository
     /// </summary>
     /// <param name="identity"></param>
     /// <returns> Returns a task representing the asynchronous operation, with the result being the employee object if found, or null if not found.</returns>
-    Task<Employee> GetEmployeeAsync(long identity);
+    Task<Employee?> GetEmployeeAsync(long identity);
 
     /// <summary>
     /// Retrieves the total number of employee asynchronously.

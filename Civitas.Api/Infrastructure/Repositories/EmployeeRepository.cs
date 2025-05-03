@@ -33,7 +33,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// </summary>
     /// <param name="identity">The id of the employee to be retrieved</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    public async Task<Employee> GetEmployeeAsync(long identity)
+    public async Task<Employee?> GetEmployeeAsync(long identity)
     {
        return await EmployeeAsync(identity);
     }
@@ -71,7 +71,7 @@ public class EmployeeRepository : IEmployeeRepository
     public async Task AddEmployeeAsync(Employee employee)
     {
         // Save the employees to the database for debug
-        var key = new DataKey("datakey-52");
+        var key = new DataKey($"datakey-{employee.Id}");
         await _context.SaveHashData(key, employee);
     }
 
@@ -79,12 +79,13 @@ public class EmployeeRepository : IEmployeeRepository
     /// For debugging purposes only. Retrieves a specific employee based on the identity.
     /// </summary>
     /// <param name="identity">The unique identifier of the employee.</param>
-    /// <returns>The employee object.</returns>
+    /// <returns>The employee object, or null if not found.</returns>
     private async Task<Employee?> EmployeeAsync(long identity)
     {
-        var key = new DataKey("datakey-52");
+        var key = new DataKey($"datakey-{identity}");
         var employee = await _context.GetHashData<Employee>(key);
 
-        return employee;
+        // Explicitly handle the null case to satisfy the nullable reference type warning.
+        return employee ?? null;
     }
 }
