@@ -80,17 +80,10 @@ public class EmployeeRepository : IEmployeeRepository
     /// </summary>
     /// <param name="identity">The unique identifier of the employee.</param>
     /// <returns>The employee object.</returns>
-    private async Task<Employee> EmployeeAsync(long identity)
+    private async Task<Employee?> EmployeeAsync(long identity)
     {
-        // Simulate async work (e.g., like querying a DB)
-        await Task.Delay(100); // optional, just to mimic a real async call
-
-        var employee = new Employee
-        {
-            Id = identity,
-            FirstName = "Mr.",
-            LastName = "Jardex"
-        };
+        var key = new DataKey("datakey-52");
+        var employee = await _context.GetHashData<Employee>(key);
 
         return employee;
     }
