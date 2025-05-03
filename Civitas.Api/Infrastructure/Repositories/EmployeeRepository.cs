@@ -54,42 +54,32 @@ public class EmployeeRepository : IEmployeeRepository
     /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task<IEnumerable<Employee>> EmployeesAsync()
     {
-        // Save the employees to the database for debug
-        var key = new DataKey("datakey-52");
-        var emp = new Employee
-        {
-            Id = 1,
-            FirstName = "Raistlin",
-            MiddleName = "L.",
-            LastName = "Majere"
-        };
-        await _context.SaveHashData(key, emp);
-
-        // Simulate async work (e.g., like querying a DB)
-        await Task.Delay(100); // optional, just to mimic a real async call
-
         var employees = new List<Employee>
         {
             new() { Id = 1, FirstName = "Alice", LastName = "Jansen"},
             new() { Id = 2, FirstName = "Bob", LastName = "Smith" }
         };
 
-        // Retrieving a specific employee using DataKey DEBUG code
-        var datakey = new DataKey("datakey-551");
-        var employee = await _context.GetData<Employee>(datakey);
-        if (employee != null)
-        {
-            employees.Add(employee);
-        }
-
-        var retrievedEmployee = await _context.GetHashData<Employee>(key);
-        if(retrievedEmployee != null)
-        {
-            employees.Add(retrievedEmployee);
-        }
-        // Retrieving a specific employee using DataKey DEBUG code
-
         return employees;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="employee"></param>
+    /// <returns></returns>
+    public async Task AddEmployeeAsync(Employee employee)
+    {
+// Save the employees to the database for debug
+        var key = new DataKey("datakey-52");
+        var emp = new Employee
+        {
+            Id = 1,
+            FirstName = "Caramon",
+            MiddleName = "L.",
+            LastName = "Majere"
+        };
+        await _context.SaveHashData(key, emp);
     }
 
     /// <summary>

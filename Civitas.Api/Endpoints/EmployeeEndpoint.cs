@@ -1,4 +1,6 @@
-﻿namespace Civitas.Api.Endpoints;
+﻿using Civitas.Api.Core.Entities;
+
+namespace Civitas.Api.Endpoints;
 
 using Application.Services;
 
@@ -23,6 +25,9 @@ public static class EmployeeEndpoint
 
         employee.MapGet("/count",
             static (EmployeeService employeeSevice) => GetNumberOfEmployees(employeeSevice));
+
+        employee.MapPost("/add",
+            static (EmployeeService employeeSevice, Employee employee) => AddEmployee(employeeSevice, employee));
     }
 
     /// <summary>
@@ -61,5 +66,17 @@ public static class EmployeeEndpoint
         return antal == -1
             ? Results.Content("Employeer not found", contentType: "application/json", statusCode: 404)
             : Results.Content(antal.ToString(), contentType: "application/json", statusCode: 200);
+    }
+
+    /// <summary>
+    /// Adds a new employee.
+    /// </summary>
+    /// <param name="employeeService">The service to handle Employee operations.</param>
+    /// <param name="employee">The employee data to added.</param>
+    /// <returns>An <see cref="IResult"/>Containing the error message if not added.</returns>
+    private static async Task<IResult> AddEmployee(EmployeeService employeeService, Employee employee)
+    {
+        await employeeService.AddEmployeeAsync(employee);
+        return Results.Content("Added", contentType: "application/json", statusCode: 200);
     }
 }

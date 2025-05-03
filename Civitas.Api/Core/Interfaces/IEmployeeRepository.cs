@@ -25,4 +25,11 @@ public interface IEmployeeRepository
     /// </summary>
     /// <returns>A task representing the asynchronous operation, with the result being the total count of employee.</returns>
     Task<int> GetNumberOfEmployeesAsync();
+
+    /// <summary>
+    /// Adds a new employee asynchronously to the repository.
+    /// </summary>
+    /// <param name="employee">The employee object to be added.</param>
+    /// <returns>Return a task representing the asynchronous operation.</returns>
+    Task AddEmployeeAsync(Employee employee);
 }

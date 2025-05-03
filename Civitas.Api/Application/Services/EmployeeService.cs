@@ -40,6 +40,7 @@ public class EmployeeService
     {
         return await _employeeRepository.GetEmployeeAsync(identity);
     }
+
     /// <summary>
     /// Get number of employees asynchronously.
     /// </summary>
@@ -47,5 +48,14 @@ public class EmployeeService
     public async Task<int?> GetNumberOfEmployeesAsync()
     {
         return await _employeeRepository.GetNumberOfEmployeesAsync();
+    }
+
+    /// <summary>
+    /// Adds a new employee asynchronously.
+    /// </summary>
+    /// <returns></returns>
+    public async Task AddEmployeeAsync(Employee employee)
+    {
+        await _employeeRepository.AddEmployeeAsync(employee);
     }
 }
