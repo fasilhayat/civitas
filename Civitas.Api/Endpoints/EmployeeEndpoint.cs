@@ -102,7 +102,7 @@ public static class EmployeeEndpoint
     private static uint GetHashBasedChecksum(Guid guid)
     {
         using var md5 = MD5.Create();
-        byte[] hash = md5.ComputeHash(guid.ToByteArray());
+        var hash = md5.ComputeHash(guid.ToByteArray());
         var signedHash = BitConverter.ToInt32(hash, 0);
         return unchecked((uint)signedHash);
     }
