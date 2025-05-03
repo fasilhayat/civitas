@@ -103,7 +103,7 @@ public static class EmployeeEndpoint
     {
         using var md5 = MD5.Create();
         byte[] hash = md5.ComputeHash(guid.ToByteArray());
-        int signedHash = BitConverter.ToInt32(hash, 0);
+        var signedHash = BitConverter.ToInt32(hash, 0);
         return unchecked((uint)signedHash);
     }
 }
