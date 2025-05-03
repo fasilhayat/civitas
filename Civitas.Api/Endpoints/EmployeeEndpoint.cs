@@ -99,10 +99,11 @@ public static class EmployeeEndpoint
     /// </summary>
     /// <param name="guid"></param>
     /// <returns></returns>
-    private static int GetHashBasedChecksum(Guid guid)
+    private static uint GetHashBasedChecksum(Guid guid)
     {
         using var md5 = MD5.Create();
         byte[] hash = md5.ComputeHash(guid.ToByteArray());
-        return BitConverter.ToInt32(hash, 0);
+        int signedHash = BitConverter.ToInt32(hash, 0);
+        return unchecked((uint)signedHash);
     }
 }
