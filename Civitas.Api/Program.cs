@@ -1,13 +1,55 @@
-﻿using Civitas.Api;
+﻿using Akka.Actor;
+using Akka.Configuration;
+using Akka.Pattern;
+using Civitas.Api;
+using Civitas.Api.Core.Interfaces;
 using Civitas.Api.Endpoints;
+using Civitas.Api.Infrastructure.Actors;
+using Civitas.Api.Infrastructure.Repositories;
 using StackExchange.Redis;
 using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register AkkaConfigLoader as a singleton so it can be injected
+builder.Services.AddSingleton<AkkaConfigLoader>();
+
+// Load Akka.NET configuration from 'akka.conf'
+builder.Services.AddSingleton(_ =>
+{
+    var configLoader = _.GetRequiredService<AkkaConfigLoader>();
+    var config = configLoader.LoadConfig(); // Ensure LoadConfig reads this file
+    return config;
+});
+
 // Add Services
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddAuthorization();
+
+// Akka
+builder.Services.AddSingleton<IActorRef>(provider =>
+{
+    var system = provider.GetRequiredService<ActorSystem>();
+    var registry = provider.GetRequiredService<IMethodRegistry>();
+    var breaker = new CircuitBreaker(
+        scheduler: system.Scheduler,
+        maxFailures: 5,
+        callTimeout: TimeSpan.FromSeconds(10),
+        resetTimeout: TimeSpan.FromSeconds(30)
+    );
+
+    var props = Props.Create(() => new ReliableDeliveryActor(breaker, registry));
+    return system.ActorOf(props, "reliable-delivery-actor");
+});
+
+builder.Services.AddSingleton<IMethodRegistry, MethodRegistry>();
+
+// Register Akka ActorSystem
+builder.Services.AddSingleton(_ =>
+{
+    var system = ActorSystem.Create("CivitasSystem", _.GetRequiredService<Config>());
+    return system;
+});
 
 // Add Redis ConnectionMultiplexer using the configuration
 builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
@@ -54,6 +96,7 @@ app.UseAuthorization();
 app.MapEmployeeEndpoints();
 app.MapAccessControlEndpoints();
 app.MapSalaryEndpoints();
+
 
 // Start the application
 app.Run();
