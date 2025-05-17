@@ -353,3 +353,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Civitas.Api/akka/persistence/journal.db-journal
+/Civitas.Api/akka/persistence/journal.db
