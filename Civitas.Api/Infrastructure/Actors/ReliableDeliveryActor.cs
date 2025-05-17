@@ -20,9 +20,6 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     private readonly CircuitBreaker _breaker;
     private readonly IMethodRegistry _registry;
 
-    private int _eventCount = 0;
-    private const int SnapshotInterval = 100;
-
     public ReliableDeliveryActor(CircuitBreaker breaker, IMethodRegistry registry)
     {
         _breaker = breaker;

@@ -7,6 +7,9 @@ using Core.Interfaces;
 /// </summary>
 public class MethodRegistry : IMethodRegistry
 {
+    /// <summary>
+    /// Dictionary to store method handlers with their keys.
+    /// </summary>
     private readonly Dictionary<string, Func<object?, Task<bool>>> _handlers = new();
 
     /// <summary>

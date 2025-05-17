@@ -8,6 +8,7 @@ using Civitas.Api.Infrastructure.Actors;
 using Civitas.Api.Infrastructure.Repositories;
 using StackExchange.Redis;
 using System.Globalization;
+using Civitas.Api.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +44,21 @@ builder.Services.AddSingleton<IActorRef>(provider =>
 });
 
 builder.Services.AddSingleton<IMethodRegistry, MethodRegistry>();
+//builder.Services.AddSingleton(provider =>
+//{
+//    var registry = provider.GetRequiredService<IMethodRegistry>();
+//    var employeeRepo = provider.GetRequiredService<IEmployeeRepository>();
+
+//    registry.Register("EmployeeRepository.AddEmployee", async payload =>
+//    {
+//        if (payload is not Employee employee) return false;
+
+//        await employeeRepo.AddEmployeeAsync(employee);
+//        return true;
+//    });
+
+//    return registry;
+//});
 
 // Register Akka ActorSystem
 builder.Services.AddSingleton(_ =>

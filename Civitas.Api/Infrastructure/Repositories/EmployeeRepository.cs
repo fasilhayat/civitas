@@ -88,9 +88,11 @@ public class EmployeeRepository : IEmployeeRepository
             Payload: employee
         );
 
-        _reliableDeliveryActor.Tell(call);
+        //// Save the employees to the database for debug
+        //var key = new DataKey($"datakey-{employee.Id}");
+        //await _context.SaveHashData(key, employee);
 
-        // optionally return Task.CompletedTask or wrap in a TaskCompletionSource for tracking
+        _reliableDeliveryActor.Tell(call);
         await Task.CompletedTask;
     }
 
