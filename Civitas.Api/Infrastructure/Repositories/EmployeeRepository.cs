@@ -35,7 +35,7 @@ public class EmployeeRepository : IEmployeeRepository
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task<Employee?> GetEmployeeAsync(long identity)
     {
-       return await EmployeeAsync(identity);
+        return await EmployeeAsync(identity);
     }
 
     /// <summary>
@@ -70,10 +70,20 @@ public class EmployeeRepository : IEmployeeRepository
     /// <returns></returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
-        // Save the employees to the database for debug
-        var key = new DataKey($"datakey-{employee.Id}");
-        await _context.SaveHashData(key, employee);
+        try
+        {
+            // Save the employees to the database for debug
+            var key = new DataKey($"datakey-{employee.Id}");
+            await _context.SaveHashData(key, employee);
+        }
+        catch (Exception ex)
+        {
+            // Temporarily log to console or logger
+            Console.WriteLine($"AddEmployeeAsync failed: {ex.Message}");
+            throw; // Let it propagate to help debug
+        }
     }
+
 
     /// <summary>
     /// For debugging purposes only. Retrieves a specific employee based on the identity.

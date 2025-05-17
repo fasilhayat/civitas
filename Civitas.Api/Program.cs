@@ -44,6 +44,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 builder.Services.AddSingleton<IMethodRegistry, MethodRegistry>();
 
 // Register ReliableDeliveryActor
+// Register ReliableDeliveryActor with BackoffSupervisor
 builder.Services.AddSingleton<IActorRef>(provider =>
 {
     var system = provider.GetRequiredService<ActorSystem>();
@@ -56,9 +57,19 @@ builder.Services.AddSingleton<IActorRef>(provider =>
         resetTimeout: TimeSpan.FromSeconds(30)
     );
 
-    var props = Props.Create(() => new ReliableDeliveryActor(breaker, registry));
-    return system.ActorOf(props, "reliable-delivery-actor");
+    var backoffProps = Backoff.OnFailure(
+        Props.Create(() => new ReliableDeliveryActor(breaker, registry)),
+        childName: "reliableDeliveryActor",
+        minBackoff: TimeSpan.FromSeconds(3),
+        maxBackoff: TimeSpan.FromSeconds(10),
+        randomFactor: 0.2,
+        maxNrOfRetries: 2
+    );
+
+    var supervisorProps = BackoffSupervisor.Props(backoffProps);
+    return system.ActorOf(supervisorProps, "reliable-delivery-supervisor");
 });
+
 
 // Register culture settings
 var cultureConfig = builder.Configuration.GetSection("CultureSettings");

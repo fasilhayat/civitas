@@ -6,12 +6,9 @@ using Akka.Pattern;
 using Akka.Persistence;
 using Core.Entities;
 using Core.Interfaces;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 /// <summary>
-/// Actor that handles reliable delivery of method calls.
+/// ReliableDeliveryActor is an actor that handles reliable delivery of messages.
 /// </summary>
 public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
 {
@@ -34,10 +31,11 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     {
         Command<ReliableMethodCall>(HandleMethodCall);
         Command<DeliveryConfirmed>(HandleDeliveryConfirmed);
-        Command<PendingDeliveries>(_ => HandlePendingDeliveries());
-
-        // Add handler for failures from delivery attempts:
+        Command<PendingDeliveries>(HandlePendingDeliveries);
         Command<Status.Failure>(HandleDeliveryFailure);
+
+        // **New: Add explicit handler for ReceiveDeliveryCheck messages**
+        Command<ReceiveDeliveryCheck>(HandleReceiveDeliveryCheck);
     }
 
     private void RegisterRecoveryHandlers()
@@ -60,16 +58,20 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     {
         _log.Info("Received method invocation for: {0}", call.MethodKey);
 
+        var originalSender = Sender;
+
         Persist(call, persisted =>
         {
             Deliver(Self.Path, deliveryId =>
-                persisted with { DeliveryId = deliveryId });
-
-            TryDeliverMethod(persisted);
+            {
+                var deliverable = persisted with { DeliveryId = deliveryId };
+                TryDeliverMethod(deliverable, originalSender);
+                return deliverable;
+            });
         });
     }
 
-    private void TryDeliverMethod(ReliableMethodCall call)
+    private void TryDeliverMethod(ReliableMethodCall call, IActorRef originalSender)
     {
         _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
 
@@ -85,19 +87,24 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
             return;
         }
 
-        _breaker.WithCircuitBreaker(() => handler(call.Payload))
+        var deliveryResult = _breaker.WithCircuitBreaker(() => handler(call.Payload))
             .ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully && task.Result)
                 {
                     _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", call.MethodKey, call.DeliveryId);
+
+                    originalSender.Tell(new DeliverySuccess(call.DeliveryId));
+
+                    // Notify self about confirmation to mark delivery as confirmed
                     return (object)new DeliveryConfirmed(call.DeliveryId);
                 }
 
                 _log.Warning("Handler failed or returned false for method {0}: {1}", call.MethodKey, task.Exception?.Message ?? "Returned false");
                 return new Status.Failure(task.Exception ?? new Exception($"Handler for {call.MethodKey} failed or returned false."));
-            })
-            .PipeTo(Self);
+            });
+
+        deliveryResult.PipeTo(Self);
     }
 
     private void HandleDeliveryConfirmed(DeliveryConfirmed confirm)
@@ -111,20 +118,45 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         });
     }
 
-    // New method to handle failures in delivery attempts
     private void HandleDeliveryFailure(Status.Failure failure)
     {
-        _log.Warning("Delivery failed: {0}", failure.Cause.Message);
-        // Here you could add retry logic, alerting, or dead letter forwarding if needed
+        _log.Warning("Delivery failed: {0}", failure.Cause?.Message ?? "Unknown failure");
+        // Add retry or alert logic here as needed
     }
 
-    private void HandlePendingDeliveries()
+    private void HandlePendingDeliveries(PendingDeliveries msg)
     {
         var snapshot = GetDeliverySnapshot();
         var pending = snapshot.UnconfirmedDeliveries
-            .Select(x => x.Message.ToString())
+            .Select(x => x.Message?.ToString())
             .ToList();
 
         Sender.Tell(new PendingDeliveries(pending));
+    }
+
+    /// <summary>
+    /// Explicit handler for receive delivery check.
+    /// This is a message sent by the recipient actor confirming delivery.
+    /// </summary>
+    /// <param name="check"></param>
+    private void HandleReceiveDeliveryCheck(ReceiveDeliveryCheck check)
+    {
+        _log.Info("Received delivery check for deliveryId: {0}", check.DeliveryId);
+
+        // Verify deliveryId is known and unconfirmed before confirming
+        var snapshot = GetDeliverySnapshot();
+        if (snapshot.UnconfirmedDeliveries.Any(d => d.DeliveryId == check.DeliveryId))
+        {
+            _log.Info("Confirming delivery for deliveryId: {0}", check.DeliveryId);
+            Persist(new DeliveryConfirmed(check.DeliveryId), _ =>
+            {
+                ConfirmDelivery(check.DeliveryId);
+                _log.Info("Confirmed delivery with id: {0} after receive delivery check", check.DeliveryId);
+            });
+        }
+        else
+        {
+            _log.Warning("Received delivery check for unknown or already confirmed deliveryId: {0}", check.DeliveryId);
+        }
     }
 }
