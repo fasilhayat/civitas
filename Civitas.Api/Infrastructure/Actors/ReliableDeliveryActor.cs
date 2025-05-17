@@ -35,6 +35,9 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         Command<ReliableMethodCall>(HandleMethodCall);
         Command<DeliveryConfirmed>(HandleDeliveryConfirmed);
         Command<PendingDeliveries>(_ => HandlePendingDeliveries());
+
+        // Add handler for failures from delivery attempts:
+        Command<Status.Failure>(HandleDeliveryFailure);
     }
 
     private void RegisterRecoveryHandlers()
@@ -87,9 +90,11 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
             {
                 if (task.IsCompletedSuccessfully && task.Result)
                 {
+                    _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", call.MethodKey, call.DeliveryId);
                     return (object)new DeliveryConfirmed(call.DeliveryId);
                 }
 
+                _log.Warning("Handler failed or returned false for method {0}: {1}", call.MethodKey, task.Exception?.Message ?? "Returned false");
                 return new Status.Failure(task.Exception ?? new Exception($"Handler for {call.MethodKey} failed or returned false."));
             })
             .PipeTo(Self);
@@ -102,7 +107,15 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         Persist(confirm, _ =>
         {
             ConfirmDelivery(confirm.DeliveryId);
+            _log.Info("Confirmed delivery with id: {0}", confirm.DeliveryId);
         });
+    }
+
+    // New method to handle failures in delivery attempts
+    private void HandleDeliveryFailure(Status.Failure failure)
+    {
+        _log.Warning("Delivery failed: {0}", failure.Cause.Message);
+        // Here you could add retry logic, alerting, or dead letter forwarding if needed
     }
 
     private void HandlePendingDeliveries()
