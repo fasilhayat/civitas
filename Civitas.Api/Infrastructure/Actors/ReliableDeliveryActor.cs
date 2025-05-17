@@ -8,6 +8,7 @@ using Core.Entities;
 using Core.Interfaces;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Actor that handles reliable delivery of method calls.
@@ -69,20 +70,27 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     {
         _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
 
-        var handler = _registry.GetHandler(call.MethodKey);
-        if (handler == null)
+        Func<object?, Task<bool>>? handler = null;
+
+        try
         {
-            _log.Warning("No handler registered for method key: {0}", call.MethodKey);
+            handler = _registry.GetHandler(call.MethodKey);
+        }
+        catch (Exception ex)
+        {
+            _log.Warning("Handler not found for {0}: {1}", call.MethodKey, ex.Message);
             return;
         }
 
         _breaker.WithCircuitBreaker(() => handler(call.Payload))
             .ContinueWith(task =>
             {
-                if (task is { IsCompletedSuccessfully: true, Result: true })
+                if (task.IsCompletedSuccessfully && task.Result)
+                {
                     return (object)new DeliveryConfirmed(call.DeliveryId);
+                }
 
-                return new Status.Failure(task.Exception ?? new Exception("Method failed or returned false"));
+                return new Status.Failure(task.Exception ?? new Exception($"Handler for {call.MethodKey} failed or returned false."));
             })
             .PipeTo(Self);
     }

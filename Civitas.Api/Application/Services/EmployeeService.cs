@@ -1,5 +1,6 @@
 namespace Civitas.Api.Application.Services;
 
+using Akka.Actor;
 using Core.Entities;
 using Core.Interfaces;
 
@@ -13,13 +14,21 @@ public class EmployeeService
     /// </summary>
     private readonly IEmployeeRepository _employeeRepository;
 
+
+    /// <summary>
+    /// The reliable delivery actor used for message delivery.
+    /// </summary>
+    private readonly IActorRef _reliableDeliveryActor;
+
     /// <summary>
     /// Default constructor.
     /// </summary>
     /// <param name="employeeRepository">The employee repository.</param>
-    public EmployeeService(IEmployeeRepository employeeRepository)
+    /// <param name="reliableDeliveryActor"></param>
+    public EmployeeService(IEmployeeRepository employeeRepository, IActorRef reliableDeliveryActor)
     {
         _employeeRepository = employeeRepository;
+        _reliableDeliveryActor = reliableDeliveryActor ?? throw new ArgumentNullException(nameof(reliableDeliveryActor));
     }
 
     /// <summary>
@@ -56,6 +65,18 @@ public class EmployeeService
     /// <returns></returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
-        await _employeeRepository.AddEmployeeAsync(employee);
+        var callId = Guid.NewGuid().ToString();
+        var methodKey = "EmployeeRepository.AddEmployee";
+
+        var call = new ReliableMethodCall(
+            CallId: callId,
+            MethodKey: methodKey,
+            Payload: employee
+        );
+
+        _reliableDeliveryActor.Tell(call);
+
+        // No direct call to the repository — ReliableDeliveryActor handles it.
+        await Task.CompletedTask;
     }
 }

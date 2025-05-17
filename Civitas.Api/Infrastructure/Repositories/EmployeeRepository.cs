@@ -1,7 +1,5 @@
 namespace Civitas.Api.Infrastructure.Repositories;
 
-using Akka.Actor;
-using Civitas.Api.Infrastructure.Actors;
 using Core.Entities;
 using Core.Interfaces;
 using Data;
@@ -17,19 +15,12 @@ public class EmployeeRepository : IEmployeeRepository
     private readonly IDbContext _context;
 
     /// <summary>
-    /// The reliable delivery actor used for message delivery.
-    /// </summary>
-    private readonly IActorRef _reliableDeliveryActor;
-
-    /// <summary>
     /// The constructor for the EmployeeRepository class.
     /// </summary>
     /// <param name="context">The context object.</param>
-    /// <param name="reliableDeliveryActor"></param>
-    public EmployeeRepository(IDbContext context, IActorRef reliableDeliveryActor)
+    public EmployeeRepository(IDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _reliableDeliveryActor = reliableDeliveryActor ?? throw new ArgumentNullException(nameof(reliableDeliveryActor));
     }
 
     public async Task<IEnumerable<Employee>> GetEmployeesAsync()
@@ -79,21 +70,9 @@ public class EmployeeRepository : IEmployeeRepository
     /// <returns></returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
-        var callId = Guid.NewGuid().ToString(); // generate unique ID
-        var methodKey = "EmployeeRepository.AddEmployee"; // must match a handler in IMethodRegistry
-
-        var call = new ReliableMethodCall(
-            CallId: callId,
-            MethodKey: methodKey,
-            Payload: employee
-        );
-
-        //// Save the employees to the database for debug
-        //var key = new DataKey($"datakey-{employee.Id}");
-        //await _context.SaveHashData(key, employee);
-
-        _reliableDeliveryActor.Tell(call);
-        await Task.CompletedTask;
+        // Save the employees to the database for debug
+        var key = new DataKey($"datakey-{employee.Id}");
+        await _context.SaveHashData(key, employee);
     }
 
     /// <summary>
