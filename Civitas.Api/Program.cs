@@ -119,9 +119,8 @@ void RegisterMethodHandlers(IServiceProvider services)
             return false;
 
         using var scope = scopeFactory.CreateScope();
-        var employeeRepo = scope.ServiceProvider.GetRequiredService<IEmployeeRepository>();
-        await employeeRepo.AddEmployeeAsync(employee);
+        var repository = scope.ServiceProvider.GetRequiredService<IEmployeeRepository>();
+        await repository.AddEmployeeAsync(employee);
         return true;
     });
 }
-
