@@ -65,7 +65,7 @@ public class EmployeeService
     /// <returns></returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
-        var callId = Guid.NewGuid().ToString();
+        var callId = "14e339c2-0c63-49f3-abba-d7f01aeacee4";
         var methodKey = "EmployeeRepository.AddEmployee";
 
         var call = new ReliableMethodCall(

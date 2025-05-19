@@ -31,7 +31,7 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     {
         Command<ReliableMethodCall>(HandleMethodCall);
         Command<DeliveryConfirmed>(HandleDeliveryConfirmed);
-        Command<PendingDeliveries>(HandlePendingDeliveries);
+        Command<PendingDeliveries>(_ => HandlePendingDeliveries());
         Command<Status.Failure>(HandleDeliveryFailure);
 
         // **New: Add explicit handler for ReceiveDeliveryCheck messages**
@@ -57,21 +57,18 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     private void HandleMethodCall(ReliableMethodCall call)
     {
         _log.Info("Received method invocation for: {0}", call.MethodKey);
-
-        var originalSender = Sender;
-
         Persist(call, persisted =>
         {
             Deliver(Self.Path, deliveryId =>
             {
                 var deliverable = persisted with { DeliveryId = deliveryId };
-                TryDeliverMethod(deliverable, originalSender);
+                TryDeliverMethod(deliverable);
                 return deliverable;
             });
         });
     }
 
-    private void TryDeliverMethod(ReliableMethodCall call, IActorRef originalSender)
+    private void TryDeliverMethod(ReliableMethodCall call)
     {
         _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
 
@@ -87,24 +84,23 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
             return;
         }
 
-        var deliveryResult = _breaker.WithCircuitBreaker(() => handler(call.Payload))
-            .ContinueWith(task =>
-            {
-                if (task.IsCompletedSuccessfully && task.Result)
+        Persist(call, persistedCall =>
+        {
+            _breaker.WithCircuitBreaker(() => handler(persistedCall.Payload))
+                .ContinueWith(task =>
                 {
-                    _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", call.MethodKey, call.DeliveryId);
+                    if (task is { IsCompletedSuccessfully: true, Result: true })
+                    {
+                        _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", persistedCall.MethodKey, persistedCall.DeliveryId);
+                        return (object)new DeliveryConfirmed(persistedCall.DeliveryId);
+                    }
 
-                    originalSender.Tell(new DeliverySuccess(call.DeliveryId));
+                    _log.Warning("Handler failed or returned false for method {0}: {1}", persistedCall.MethodKey, task.Exception?.Message ?? "Returned false");
+                    return new Status.Failure(task.Exception ?? new Exception($"Handler for {persistedCall.MethodKey} failed or returned false."));
+                })
+                .PipeTo(Self);
+        });
 
-                    // Notify self about confirmation to mark delivery as confirmed
-                    return (object)new DeliveryConfirmed(call.DeliveryId);
-                }
-
-                _log.Warning("Handler failed or returned false for method {0}: {1}", call.MethodKey, task.Exception?.Message ?? "Returned false");
-                return new Status.Failure(task.Exception ?? new Exception($"Handler for {call.MethodKey} failed or returned false."));
-            });
-
-        deliveryResult.PipeTo(Self);
     }
 
     private void HandleDeliveryConfirmed(DeliveryConfirmed confirm)
@@ -124,11 +120,11 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         // Add retry or alert logic here as needed
     }
 
-    private void HandlePendingDeliveries(PendingDeliveries msg)
+    private void HandlePendingDeliveries()
     {
         var snapshot = GetDeliverySnapshot();
         var pending = snapshot.UnconfirmedDeliveries
-            .Select(x => x.Message?.ToString())
+            .Select(x => x.Message.ToString())
             .ToList();
 
         Sender.Tell(new PendingDeliveries(pending));
