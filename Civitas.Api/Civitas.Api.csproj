@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="akka\**" />
+    <Content Remove="akka\**" />
+    <EmbeddedResource Remove="akka\**" />
+    <None Remove="akka\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Akka" Version="1.5.41" />
     <PackageReference Include="Akka.Persistence" Version="1.5.41" />
     <PackageReference Include="Akka.Persistence.Sqlite" Version="1.5.39" />
