@@ -24,7 +24,6 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         _registry = registry;
 
         RegisterCommandHandlers();
-        RegisterRecoveryHandlers();
     }
 
     private void RegisterCommandHandlers()
@@ -32,57 +31,46 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         Command<ReliableMethodCall>(HandleMethodCall);
         Command<DeliveryConfirmed>(HandleDeliveryConfirmed);
         Command<PendingDeliveries>(_ => HandlePendingDeliveries());
-        Command<Status.Failure>(HandleDeliveryFailure);
-
-        // **New: Add explicit handler for ReceiveDeliveryCheck messages**
-        Command<ReceiveDeliveryCheck>(HandleReceiveDeliveryCheck);
     }
 
-    private void RegisterRecoveryHandlers()
-    {
-        Recover<ReliableMethodCall>(call =>
-        {
-            _log.Info("Recovering ReliableMethodCall: {0}", call.MethodKey);
-            Deliver(Self.Path, deliveryId =>
-                call with { DeliveryId = deliveryId });
-        });
-
-        Recover<DeliveryConfirmed>(confirm =>
-        {
-            _log.Info("Recovering DeliveryConfirmed: {0}", confirm.DeliveryId);
-            ConfirmDelivery(confirm.DeliveryId);
-        });
-    }
 
     private void HandleMethodCall(ReliableMethodCall call)
     {
         _log.Info("Received method invocation for: {0}", call.MethodKey);
         Persist(call, persisted =>
         {
-            Deliver(Self.Path, deliveryId =>
-            {
-                var deliverable = persisted with { DeliveryId = deliveryId };
-                TryDeliverMethod(deliverable);
-                return deliverable;
-            });
+            TrySendHttp(persisted)
+                .ContinueWith(task =>
+                {
+                    if (task is { IsCompletedSuccessfully: true, Result: true })
+                        return (object)new DeliveryConfirmed(call.DeliveryId);
+
+                    return new Status.Failure(task.Exception ?? new Exception("HTTP request failed or returned false"));
+                })
+                .PipeTo(Self);
+
+            //Deliver(Self.Path, deliveryId =>
+            //{
+            //    var deliverable = persisted with { DeliveryId = deliveryId };
+            //    TryDeliverMethod(deliverable);
+            //    return deliverable;
+            //});
         });
     }
 
-    private void TryDeliverMethod(ReliableMethodCall call)
+    private Task<bool> TrySendHttp(ReliableMethodCall call)
+    {
+        return _breaker.WithCircuitBreaker(() => TryDeliverMethod(call));
+    }
+
+    private Task<bool> TryDeliverMethod(ReliableMethodCall call)
     {
         _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
 
         Func<object?, Task<bool>>? handler = null;
+        handler = _registry.GetHandler(call.MethodKey);
 
-        try
-        {
-            handler = _registry.GetHandler(call.MethodKey);
-        }
-        catch (Exception ex)
-        {
-            _log.Warning("Handler not found for {0}: {1}", call.MethodKey, ex.Message);
-            return;
-        }
+        var tcs = new TaskCompletionSource<bool>();
 
         Persist(call, persistedCall =>
         {
@@ -92,15 +80,18 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
                     if (task is { IsCompletedSuccessfully: true, Result: true })
                     {
                         _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", persistedCall.MethodKey, persistedCall.DeliveryId);
+                        tcs.SetResult(true);
                         return (object)new DeliveryConfirmed(persistedCall.DeliveryId);
                     }
 
                     _log.Warning("Handler failed or returned false for method {0}: {1}", persistedCall.MethodKey, task.Exception?.Message ?? "Returned false");
+                    tcs.SetResult(false);
                     return new Status.Failure(task.Exception ?? new Exception($"Handler for {persistedCall.MethodKey} failed or returned false."));
                 })
                 .PipeTo(Self);
         });
 
+        return tcs.Task;
     }
 
     private void HandleDeliveryConfirmed(DeliveryConfirmed confirm)
@@ -114,12 +105,6 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         });
     }
 
-    private void HandleDeliveryFailure(Status.Failure failure)
-    {
-        _log.Warning("Delivery failed: {0}", failure.Cause?.Message ?? "Unknown failure");
-        // Add retry or alert logic here as needed
-    }
-
     private void HandlePendingDeliveries()
     {
         var snapshot = GetDeliverySnapshot();
@@ -128,31 +113,5 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
             .ToList();
 
         Sender.Tell(new PendingDeliveries(pending));
-    }
-
-    /// <summary>
-    /// Explicit handler for receive delivery check.
-    /// This is a message sent by the recipient actor confirming delivery.
-    /// </summary>
-    /// <param name="check"></param>
-    private void HandleReceiveDeliveryCheck(ReceiveDeliveryCheck check)
-    {
-        _log.Info("Received delivery check for deliveryId: {0}", check.DeliveryId);
-
-        // Verify deliveryId is known and unconfirmed before confirming
-        var snapshot = GetDeliverySnapshot();
-        if (snapshot.UnconfirmedDeliveries.Any(d => d.DeliveryId == check.DeliveryId))
-        {
-            _log.Info("Confirming delivery for deliveryId: {0}", check.DeliveryId);
-            Persist(new DeliveryConfirmed(check.DeliveryId), _ =>
-            {
-                ConfirmDelivery(check.DeliveryId);
-                _log.Info("Confirmed delivery with id: {0} after receive delivery check", check.DeliveryId);
-            });
-        }
-        else
-        {
-            _log.Warning("Received delivery check for unknown or already confirmed deliveryId: {0}", check.DeliveryId);
-        }
     }
 }

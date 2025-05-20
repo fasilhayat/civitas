@@ -8,6 +8,7 @@ using Civitas.Api.Infrastructure.Actors;
 using Civitas.Api.Infrastructure.Repositories;
 using StackExchange.Redis;
 using System.Globalization;
+using Akka.Event;
 using Civitas.Api.Core.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -49,13 +50,18 @@ builder.Services.AddSingleton<IActorRef>(provider =>
 {
     var system = provider.GetRequiredService<ActorSystem>();
     var registry = provider.GetRequiredService<IMethodRegistry>();
+    var config = provider.GetRequiredService<Config>();
+    
+    // Create CircuitBreaker with settings from the config
+    var maxFailures = config.GetInt("akka.circuit-breaker.max-failures");
+    var callTimeout = config.GetTimeSpan("akka.circuit-breaker.call-timeout");
+    var resetTimeout = config.GetTimeSpan("akka.circuit-breaker.reset-timeout");
 
     var breaker = new CircuitBreaker(
-        scheduler: system.Scheduler,
-        maxFailures: 5,
-        callTimeout: TimeSpan.FromSeconds(10),
-        resetTimeout: TimeSpan.FromSeconds(30)
-    );
+            system.Scheduler, maxFailures, callTimeout, resetTimeout)
+        .OnOpen(() => system.Log.Warning("Circuit breaker opened"))
+        .OnHalfOpen(() => system.Log.Info("Circuit breaker is half-open"))
+        .OnClose(() => system.Log.Info("Circuit breaker closed"));
 
     var backoffProps = Backoff.OnFailure(
         Props.Create(() => new ReliableDeliveryActor(breaker, registry)),
