@@ -12,12 +12,31 @@ using Core.Interfaces;
 /// </summary>
 public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
 {
+    /// <summary>
+    /// Unique identifier for the actor.
+    /// </summary>
     public override string PersistenceId => "reliable-delivery-actor";
 
+    /// <summary>
+    /// Logger instance for logging messages.
+    /// </summary>
     private readonly ILoggingAdapter _log = Context.GetLogger();
+
+    /// <summary>
+    /// Circuit breaker for handling failures in message delivery.
+    /// </summary>
     private readonly CircuitBreaker _breaker;
+
+    /// <summary>
+    /// Method registry for managing method handlers.
+    /// </summary>
     private readonly IMethodRegistry _registry;
 
+    /// <summary>
+    /// ReliableDeliveryActor constructor.
+    /// </summary>
+    /// <param name="breaker">Circuit breaker for handling failures.</param>
+    /// <param name="registry">Registry for managing method handlers.</param>
     public ReliableDeliveryActor(CircuitBreaker breaker, IMethodRegistry registry)
     {
         _breaker = breaker;
@@ -26,6 +45,9 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         RegisterCommandHandlers();
     }
 
+    /// <summary>
+    /// Registers command handlers for the actor.
+    /// </summary>
     private void RegisterCommandHandlers()
     {
         Command<ReliableMethodCall>(HandleMethodCall);
@@ -33,7 +55,10 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         Command<PendingDeliveries>(_ => HandlePendingDeliveries());
     }
 
-
+    /// <summary>
+    /// Handles method call messages.
+    /// </summary>
+    /// <param name="call">The method call message.</param>
     private void HandleMethodCall(ReliableMethodCall call)
     {
         _log.Info("Received method invocation for: {0}", call.MethodKey);
@@ -48,21 +73,24 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
                     return new Status.Failure(task.Exception ?? new Exception("HTTP request failed or returned false"));
                 })
                 .PipeTo(Self);
-
-            //Deliver(Self.Path, deliveryId =>
-            //{
-            //    var deliverable = persisted with { DeliveryId = deliveryId };
-            //    TryDeliverMethod(deliverable);
-            //    return deliverable;
-            //});
         });
     }
 
+    /// <summary>
+    /// Tries to send an HTTP request for the method call.
+    /// </summary>
+    /// <param name="call">Call to be sent.</param>
+    /// <returns>Returns a task indicating success or failure.</returns>
     private Task<bool> TrySendHttp(ReliableMethodCall call)
     {
         return _breaker.WithCircuitBreaker(() => TryDeliverMethod(call));
     }
 
+    /// <summary>
+    /// Delivers the method call to the appropriate handler.
+    /// </summary>
+    /// <param name="call">The method call to be delivered.</param>
+    /// <returns>Returns a task indicating success or failure.</returns>
     private Task<bool> TryDeliverMethod(ReliableMethodCall call)
     {
         _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
@@ -94,6 +122,10 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         return tcs.Task;
     }
 
+    /// <summary>
+    /// Handles delivery confirmation messages.
+    /// </summary>
+    /// <param name="confirm">Confirmation message.</param>
     private void HandleDeliveryConfirmed(DeliveryConfirmed confirm)
     {
         _log.Info("Delivery confirmed: {0}", confirm.DeliveryId);
@@ -105,6 +137,9 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
         });
     }
 
+    /// <summary>
+    /// Handles delivery confirmation messages.
+    /// </summary>
     private void HandlePendingDeliveries()
     {
         var snapshot = GetDeliverySnapshot();
