@@ -61,7 +61,7 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     /// <param name="call">The method call message.</param>
     private void HandleMethodCall(ReliableMethodCall call)
     {
-        _log.Info("Received method invocation for: {0}", call.MethodKey);
+        _log.Info($"Received method invocation for: {call.MethodKey}");
         Persist(call, persisted =>
         {
             TrySendHttp(persisted)
@@ -93,7 +93,7 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     /// <returns>Returns a task indicating success or failure.</returns>
     private Task<bool> TryDeliverMethod(ReliableMethodCall call)
     {
-        _log.Info("Delivering method: {0}, deliveryId: {1}", call.MethodKey, call.DeliveryId);
+        _log.Info($"Delivering method: {call.MethodKey}, deliveryId: {call.DeliveryId}");
 
         Func<object?, Task<bool>>? handler = null;
         handler = _registry.GetHandler(call.MethodKey);
@@ -107,12 +107,12 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
                 {
                     if (task is { IsCompletedSuccessfully: true, Result: true })
                     {
-                        _log.Info("Handler succeeded for method {0}, sending DeliveryConfirmed for deliveryId {1}", persistedCall.MethodKey, persistedCall.DeliveryId);
+                        _log.Info($"Handler succeeded for method {persistedCall.MethodKey}, sending DeliveryConfirmed for deliveryId {persistedCall.DeliveryId}");
                         tcs.SetResult(true);
                         return (object)new DeliveryConfirmed(persistedCall.DeliveryId);
                     }
 
-                    _log.Warning("Handler failed or returned false for method {0}: {1}", persistedCall.MethodKey, task.Exception?.Message ?? "Returned false");
+                    _log.Warning($"Handler failed or returned false for method {persistedCall.MethodKey}: {task.Exception?.Message ?? "Returned false"}");
                     tcs.SetResult(false);
                     return new Status.Failure(task.Exception ?? new Exception($"Handler for {persistedCall.MethodKey} failed or returned false."));
                 })
@@ -128,12 +128,12 @@ public class ReliableDeliveryActor : AtLeastOnceDeliveryReceiveActor
     /// <param name="confirm">Confirmation message.</param>
     private void HandleDeliveryConfirmed(DeliveryConfirmed confirm)
     {
-        _log.Info("Delivery confirmed: {0}", confirm.DeliveryId);
+        _log.Info($"Delivery confirmed: {confirm.DeliveryId}");
 
         Persist(confirm, _ =>
         {
             ConfirmDelivery(confirm.DeliveryId);
-            _log.Info("Confirmed delivery with id: {0}", confirm.DeliveryId);
+            _log.Info($"Confirmed delivery with id: {confirm.DeliveryId}");
         });
     }
 
