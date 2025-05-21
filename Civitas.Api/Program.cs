@@ -44,7 +44,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 // Register MethodRegistry
 builder.Services.AddSingleton<IMethodRegistry, MethodRegistry>();
 
-// Register ReliableDeliveryActor
 // Register ReliableDeliveryActor with BackoffSupervisor
 builder.Services.AddSingleton<IActorRef>(provider =>
 {
