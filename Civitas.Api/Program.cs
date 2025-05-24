@@ -1,16 +1,17 @@
 ﻿using Akka.Actor;
 using Akka.Configuration;
+using Akka.Event;
 using Akka.Pattern;
 using Civitas.Api;
+using Civitas.Api.Core.Entities;
 using Civitas.Api.Core.Interfaces;
 using Civitas.Api.Endpoints;
+using Civitas.Api.Health;
 using Civitas.Api.Infrastructure.Actors;
 using Civitas.Api.Infrastructure.Repositories;
+using Prometheus;
 using StackExchange.Redis;
 using System.Globalization;
-using Akka.Event;
-using Civitas.Api.Core.Entities;
-using Civitas.Api.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,7 @@ builder.Services.AddSingleton(provider =>
     var config = provider.GetRequiredService<Config>();
     return ActorSystem.Create("CivitasSystem", config);
 });
+
 // App services
 builder.Services.AddServices(builder.Configuration);
 builder.Services.AddAuthorization();
@@ -51,7 +53,7 @@ builder.Services.AddSingleton<IActorRef>(provider =>
     var system = provider.GetRequiredService<ActorSystem>();
     var registry = provider.GetRequiredService<IMethodRegistry>();
     var config = provider.GetRequiredService<Config>();
-    
+
     // Create CircuitBreaker with settings from the config
     var maxFailures = config.GetInt("akka.circuit-breaker.max-failures");
     var callTimeout = config.GetTimeSpan("akka.circuit-breaker.call-timeout");
@@ -76,7 +78,6 @@ builder.Services.AddSingleton<IActorRef>(provider =>
     return system.ActorOf(supervisorProps, "reliable-delivery-supervisor");
 });
 
-
 // Register culture settings
 var cultureConfig = builder.Configuration.GetSection("CultureSettings");
 var cultureInfo = new CultureInfo(cultureConfig["Culture"]!)
@@ -98,6 +99,10 @@ if (builder.Environment.IsDevelopment())
 
 var app = builder.AddHealth().Build();
 
+// --- Prometheus: expose /metrics endpoint ---
+app.UseMetricServer(); // This will expose /metrics automatically
+app.UseHttpMetrics();  // Collects default HTTP metrics for requests
+
 // Middleware and endpoints
 app.UseMiddlewareConfiguration(app.Environment, builder.Configuration);
 app.UseRouting();
@@ -108,6 +113,16 @@ app.MapSalaryEndpoints();
 app.UseHealth();
 
 RegisterMethodHandlers(app.Services);
+
+//* Prometheus *//
+// Custom health gauge
+var healthGauge = Metrics.CreateGauge("app_health_status", "Application health status (1=healthy, 0=unhealthy)");
+
+// Set health to 1 (healthy) initially
+healthGauge.Set(1);
+app.MapGet("/health", () => Results.Ok("Healthy"));
+//* Prometheus *//
+
 app.Run();
 
 // ---------------------------------------------

@@ -43,7 +43,8 @@ public class ApiKeyMiddleware
         // Bypass the middleware for Swagger UI and health check requests
         if (path.StartsWithSegments("/swagger") ||
             path.StartsWithSegments("/swagger-ui") ||
-            path.StartsWithSegments("/healthz"))
+            path.StartsWithSegments("/healthz") ||
+            path.StartsWithSegments("/health"))
         {
             await _next(context);
             return;
