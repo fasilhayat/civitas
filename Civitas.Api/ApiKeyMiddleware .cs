@@ -38,14 +38,17 @@ public class ApiKeyMiddleware
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task InvokeAsync(HttpContext context)
     {
-        // Bypass the middleware for Swagger UI requests
-        if (context.Request.Path.StartsWithSegments("/swagger") || context.Request.Path.StartsWithSegments("/swagger-ui"))
+        var path = context.Request.Path;
+
+        // Bypass the middleware for Swagger UI and health check requests
+        if (path.StartsWithSegments("/swagger") ||
+            path.StartsWithSegments("/swagger-ui") ||
+            path.StartsWithSegments("/healthz"))
         {
             await _next(context);
             return;
         }
 
-        // Check if the API key is configured
         if (string.IsNullOrEmpty(_configuredApiKey))
         {
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
@@ -53,15 +56,14 @@ public class ApiKeyMiddleware
             return;
         }
 
-        // Validate the API key for other requests
-        if (!context.Request.Headers.TryGetValue(ApiKeyHeaderName, out var extractedApiKey) || extractedApiKey != _configuredApiKey)
+        if (!context.Request.Headers.TryGetValue(ApiKeyHeaderName, out var extractedApiKey) ||
+            extractedApiKey != _configuredApiKey)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await context.Response.WriteAsJsonAsync(new { message = "Unauthorized: Invalid or missing API key." });
             return;
         }
 
-        // Call the next middleware if the API key is valid
         await _next(context);
     }
 }

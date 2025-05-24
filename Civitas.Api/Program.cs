@@ -10,6 +10,7 @@ using StackExchange.Redis;
 using System.Globalization;
 using Akka.Event;
 using Civitas.Api.Core.Entities;
+using Civitas.Api.Health;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,7 +96,7 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddSwaggerConfiguration(builder.Configuration);
 }
 
-var app = builder.Build();
+var app = builder.AddHealth().Build();
 
 // Middleware and endpoints
 app.UseMiddlewareConfiguration(app.Environment, builder.Configuration);
@@ -104,11 +105,10 @@ app.UseAuthorization();
 app.MapEmployeeEndpoints();
 app.MapAccessControlEndpoints();
 app.MapSalaryEndpoints();
+app.UseHealth();
 
 RegisterMethodHandlers(app.Services);
-
 app.Run();
-
 
 // ---------------------------------------------
 // Local Method for Handler Registration

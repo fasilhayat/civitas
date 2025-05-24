@@ -20,6 +20,9 @@
     <PackageReference Include="Akka" Version="1.5.41" />
     <PackageReference Include="Akka.Persistence" Version="1.5.41" />
     <PackageReference Include="Akka.Persistence.Sqlite" Version="1.5.39" />
+    <PackageReference Include="AspNetCore.HealthChecks.Network" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI" Version="9.0.0" />
+    <PackageReference Include="AspNetCore.HealthChecks.Uris" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
     <PackageReference Include="StackExchange.Redis" Version="2.8.31" />
