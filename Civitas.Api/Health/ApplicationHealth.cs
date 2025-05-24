@@ -12,16 +12,22 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 public static class ApplicationHealth
 {
     /// <summary>
-    /// Add Health to an Application, to expose Health endpoint.
+    /// Adds health checks to the application and exposes a health endpoint.
     /// </summary>
-    /// <param name="builder"><see cref="WebApplicationBuilder"/> used for build</param>
-    /// <returns><see cref="WebApplicationBuilder"/> used for build</returns>
+    /// <param name="builder">
+    /// The <see cref="WebApplicationBuilder"/> used to configure services and middleware.
+    /// </param>
+    /// <returns>
+    /// The same <see cref="WebApplicationBuilder"/> instance for chaining.
+    /// </returns>
     /// <example>
+    /// Example usage:
     /// <code>
-    /// How to use:
     /// var builder = WebApplication.CreateBuilder(args);
-    /// var app = builder.AddAddHealth().Build();
-    /// app.UseHealth();
+    /// builder.AddHealth(); // Adds health checks and configures the endpoint
+    ///
+    /// var app = builder.Build();
+    /// app.UseHealth();     // Maps the health check endpoint
     /// app.Run();
     /// </code>
     /// </example>

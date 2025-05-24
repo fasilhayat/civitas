@@ -30,12 +30,12 @@ public static class HealthWriter
     /// <param name="httpContext"></param>
     /// <param name="report"></param>
     /// <returns></returns>
-    public static async Task WriteHealthUiResponse(HttpContext httpContext, HealthReport report)
+    public static async Task WriteHealthUiResponse(HttpContext httpContext, HealthReport? report)
     {
         if (report != null)
         {
             httpContext.Response.ContentType = DefaultContentType;
-            UIHealthReport uiReport = GenerateReport(report);
+            var uiReport = GenerateReport(report);
             await JsonSerializer.SerializeAsync(httpContext.Response.Body, uiReport, Options.Value);
         }
         else
@@ -49,7 +49,7 @@ public static class HealthWriter
     /// </summary>
     /// <param name="report"></param>
     /// <returns></returns>
-    public static Stream WriteHealthUiResponse(HealthReport report)
+    public static Stream WriteHealthUiResponse(HealthReport? report)
     {
         MemoryStream memoryStream;
         if (report != null)
@@ -66,9 +66,14 @@ public static class HealthWriter
         return memoryStream;
     }
 
-    private static UIHealthReport GenerateReport(HealthReport report)
+    /// <summary>
+    /// Generates a UIHealthReport from the provided HealthReport.
+    /// </summary>
+    /// <param name="report">Report to convert.</param>
+    /// <returns>The generated UIHealthReport.</returns>
+    private static UIHealthReport GenerateReport(HealthReport? report)
     {
-        Dictionary<string, HealthReportEntry> entries = new Dictionary<string, HealthReportEntry>();
+        var entries = new Dictionary<string, HealthReportEntry>();
         if (report?.Entries != null)
         {
             // Transfer existing entries if exists
@@ -81,10 +86,10 @@ public static class HealthWriter
         if (_assemblies == null)
         {
             _assemblies = new List<string>();
-            if (AppDomain.CurrentDomain.GetAssemblies() != null)
+            AppDomain.CurrentDomain.GetAssemblies().ToList().ForEach(assembly =>
             {
-                AppDomain.CurrentDomain.GetAssemblies().ToList().ForEach(assembly => _assemblies.Add(assembly.FullName));
-            }
+                if (assembly.FullName != null) _assemblies.Add(assembly.FullName);
+            });
         }
 
         entries.Add("Assemblies", new HealthReportEntry(report.Status, string.Join("<br>", _assemblies), TimeSpan.Zero, null, null, new string[] { "version" }));
@@ -94,7 +99,10 @@ public static class HealthWriter
         return uiReport;
     }
 
-    
+    /// <summary>
+    /// Generates the JSON serializer options used for serialization of the health report.
+    /// </summary>
+    /// <returns>The configured <see cref="JsonSerializerOptions"/>.</returns>
     private static JsonSerializerOptions CreateJsonOptions()
     {
         var options = new JsonSerializerOptions
@@ -114,15 +122,28 @@ public static class HealthWriter
 }
 
 /// <summary>
-/// 
+/// For compatibility with older UI versions ( less than 3.0 ) we arrange timespan serialization as string.
 /// </summary>
 internal class TimeSpanConverter : JsonConverter<TimeSpan>
 {
+    /// <summary>
+    /// Reads a TimeSpan value from the JSON reader.
+    /// </summary>
+    /// <param name="reader">Ref to the JSON reader.</param>
+    /// <param name="typeToConvert">the type to convert.</param>
+    /// <param name="options"></param>
+    /// <returns>The TimeSpan value read from the JSON.</returns>
     public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return default;
     }
 
+    /// <summary>
+    /// Writes a TimeSpan value to the JSON writer as a string representation of the TimeSpan.
+    /// </summary>
+    /// <param name="writer">The JSON writer to write to.</param>
+    /// <param name="value">The value to write.</param>
+    /// <param name="options">Options for the JSON serialization.</param>
     public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(value.ToString());
