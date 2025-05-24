@@ -47,8 +47,8 @@ public static class HealthWriter
     /// <summary>
     /// Write the Health in HealthUI format
     /// </summary>
-    /// <param name="report"></param>
-    /// <returns></returns>
+    /// <param name="report">The health report to write.</param>
+    /// <returns>Returns a stream containing the serialized health report in HealthUI format.</returns>
     public static Stream WriteHealthUiResponse(HealthReport? report)
     {
         MemoryStream memoryStream;
@@ -85,7 +85,7 @@ public static class HealthWriter
         // Only get assemblies once as it is a heavy task
         if (_assemblies == null)
         {
-            _assemblies = new List<string>();
+            _assemblies = new();
             AppDomain.CurrentDomain.GetAssemblies().ToList().ForEach(assembly =>
             {
                 if (assembly.FullName != null) _assemblies.Add(assembly.FullName);
