@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 public static class HealthWriter
 {
     private const string DefaultContentType = "application/json";
-    private static readonly byte[] EmptyResponse = new byte[] { (byte)'{', (byte)'}' };
+    private static readonly byte[] EmptyResponse = "{}"u8.ToArray();
     private static readonly Lazy<JsonSerializerOptions> Options = new(CreateJsonOptions);
     private static List<string>? _assemblies;
 
