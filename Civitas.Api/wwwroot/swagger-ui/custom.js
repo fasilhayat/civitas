@@ -11,7 +11,7 @@
                     // Replace SVG with an IMG element
                     var imgLogo = document.createElement("img");
                     imgLogo.alt = "FORCA Swagger";
-                    imgLogo.src = "/swagger-ui/ForcaLogo.png";
+                    imgLogo.src = "/swagger-ui/logo-nykredit.png";
                     imgLogo.style.height = "30px";
                     logo.replaceChild(imgLogo, svgLogo);
                 }
