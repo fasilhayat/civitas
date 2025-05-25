@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'civitas'
+    metrics_path: '/metrics'
+    scheme: https
+    static_configs:
+      - targets: ['host.docker.internal:7081']
+    tls_config:
+      insecure_skip_verify: true
