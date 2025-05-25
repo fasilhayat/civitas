@@ -1,4 +1,4 @@
-﻿namespace Civitas.Api.Health;
+﻿namespace Civitas.Api.Application.Health;
 
 using HealthChecks.UI.Core;
 using Microsoft.AspNetCore.Http;

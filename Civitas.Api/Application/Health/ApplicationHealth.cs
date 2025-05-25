@@ -1,4 +1,4 @@
-﻿namespace Civitas.Api.Health;
+﻿namespace Civitas.Api.Application.Health;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
