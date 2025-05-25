@@ -1,40 +1,23 @@
-# Base image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
-WORKDIR /app
-EXPOSE 7080
-EXPOSE 7081
-
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG TARGETARCH
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# Copy only .csproj and related props/targets files first to cache restore layer
 COPY Civitas.Api/*.csproj ./Civitas.Api/
+ENV DOTNET_NUGET_SIGNATURE_VERIFICATION=false
+RUN dotnet restore -a $TARGETARCH ./Civitas.Api/Civitas.Api.csproj
 
-# Restore as a separate layer to benefit from caching
-RUN dotnet restore ./Civitas.Api/Civitas.Api.csproj
-
-# Copy the rest of the source code
 COPY . .
-
-# Build the project
 WORKDIR /src/Civitas.Api
-RUN dotnet build -c $BUILD_CONFIGURATION -o /app/build --no-restore
+RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish -a $TARGETARCH --no-restore /p:UseAppHost=false
 
-# Publish stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish -c $BUILD_CONFIGURATION -o /app/publish --no-restore /p:UseAppHost=false
-
-# Final image
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-
-# Optional: avoid running as root by setting a secure default
-# USER appuser (if created via Dockerfile or image)
-
 COPY ./Civitas.Api/civitas.pfx /app/civitas.pfx
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 
+EXPOSE 7080
+EXPOSE 7081
 ENTRYPOINT ["dotnet", "Civitas.Api.dll"]
