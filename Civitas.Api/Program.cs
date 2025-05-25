@@ -114,15 +114,6 @@ app.UseHealth();
 
 RegisterMethodHandlers(app.Services);
 
-//* Prometheus *//
-// Custom health gauge
-var healthGauge = Metrics.CreateGauge("app_health_status", "Application health status (1=healthy, 0=unhealthy)");
-
-// Set health to 1 (healthy) initially
-healthGauge.Set(1);
-app.MapGet("/health", () => Results.Ok("Healthy"));
-//* Prometheus *//
-
 app.Run();
 
 // ---------------------------------------------
