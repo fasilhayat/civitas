@@ -1,48 +1,61 @@
 # Variables
-DOCKER_COMPOSE_FILE=$(CURDIR)/docker-compose.yml
-PROJECT_NAME=civitas
+DOCKER_COMPOSE_FILE := $(CURDIR)/docker-compose.yml
+PROJECT_NAME := civitas
+COMPOSE := docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME)
 
-NGINX_CONTAINER=proxy
-NGINX_IMAGE=civitas-proxy:v1.0
+NGINX_CONTAINER := proxy
+NGINX_IMAGE := civitas-proxy:v1.0
 
-# Build the custom nginx image from the nginx Dockerfile
+# Targets
+
+.PHONY: build-nginx-image build build-local run-local run-local-debug rebuild logs logs-% restart-% clean ps down up
+
+# Build the custom nginx image
 build-nginx-image:
 	docker build -t $(NGINX_IMAGE) ./images/nginx --no-cache
 
-# Build everything using Docker Compose (Harbor images)
+# Build using Docker Compose (Harbor images)
 build:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) build
+	$(COMPOSE) build
 
-# Build everything locally (Explicit local build)
+# Build everything locally including the custom NGINX image
 build-local: build-nginx-image
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) build --no-cache
+	$(COMPOSE) build
 
-# Run using local built images
+# Run with local built images
 run-local: build-local
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) up -d
+	$(COMPOSE) up -d
 
 run-local-debug: build-local
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) up -d redis
+	$(COMPOSE) up -d redis
 
-# Rebuild civitas-api and restart ALL services
+# Rebuild civitas-api and restart all services
 rebuild: down build up
 
-# Tail logs from ALL services
+# Bring down all services
+down:
+	$(COMPOSE) down
+
+# Bring up all services
+up:
+	$(COMPOSE) up -d
+
+# Tail logs from all services
 logs:
-	$(DOCKER_COMPOSE_FILE) logs -f
+	$(COMPOSE) logs -f
 
-# Tail logs from a specific service (e.g., make logs-civitas-api)
+# Tail logs from a specific service
 logs-%:
-	$(DOCKER_COMPOSE_FILE) logs -f $*
+	$(COMPOSE) logs -f $*
 
-# Restart a specific service (e.g., make restart-nginx)
+# Restart a specific service
 restart-%:
-	$(DOCKER_COMPOSE_FILE) restart $*
+	$(COMPOSE) restart $*
 
 # Clean volumes (WARNING: removes Redis data too)
 clean:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) down --volumes
+	$(COMPOSE) down --volumes
 
 # Show container status
 ps:
-	$(DOCKER_COMPOSE_FILE) ps
+	$(COMPOSE) ps
