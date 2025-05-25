@@ -11,7 +11,7 @@ build-nginx-image:
 
 # Build everything using Docker Compose (Harbor images)
 build:
-	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) build --no-cache
+	docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME) build
 
 # Build everything locally (Explicit local build)
 build-local: build-nginx-image
