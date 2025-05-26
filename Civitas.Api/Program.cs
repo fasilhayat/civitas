@@ -3,15 +3,15 @@ using Akka.Configuration;
 using Akka.Event;
 using Akka.Pattern;
 using Civitas.Api;
-using Civitas.Api.Application.Health;
 using Civitas.Api.Core.Entities;
 using Civitas.Api.Core.Interfaces;
-using Civitas.Api.Endpoints;
 using Civitas.Api.Infrastructure.Actors;
 using Civitas.Api.Infrastructure.Repositories;
-using Prometheus;
 using StackExchange.Redis;
 using System.Globalization;
+using Civitas.Api.Endpoints;
+using Prometheus;
+using Yggdrasil.Diagnostics.Healthcheck;
 
 var builder = WebApplication.CreateBuilder(args);
 
