@@ -18,7 +18,7 @@ public class DbContext : IDbContext
     /// <summary>
     /// The default time-to-live (TTL) for cached items in the database.
     /// </summary>
-    private readonly TimeSpan _defaultTtl;
+    private readonly TimeSpan _defaultTtl = new(0, 0, 100, 0);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DbContext"/> class.
