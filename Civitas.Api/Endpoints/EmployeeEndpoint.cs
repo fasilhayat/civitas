@@ -1,9 +1,8 @@
-﻿using System.Security.Cryptography;
-using Civitas.Api.Core.Entities;
-
 namespace Civitas.Api.Endpoints;
 
 using Application.Services;
+using Core.Entities;
+using System.Security.Cryptography;
 
 /// <summary>
 /// Endpoints for the Employee API. Handles all requests related to Employee.
@@ -19,16 +18,16 @@ public static class EmployeeEndpoint
         var employee = endpoints.MapGroup("/v1/employee").WithTags("Employee");
 
         employee.MapGet("/list",
-            static (EmployeeService employeeSevice) => GetEmployees(employeeSevice));
+            static (EmployeeService employeeService) => GetEmployees(employeeService));
 
         employee.MapGet("/id/{identity}",
-        static (long identity, EmployeeService employeeSevice) => GetEmployee(identity, employeeSevice));
+        static (long identity, EmployeeService employeeService) => GetEmployee(identity, employeeService));
 
         employee.MapGet("/count",
-            static (EmployeeService employeeSevice) => GetNumberOfEmployees(employeeSevice));
+            static (EmployeeService employeeService) => GetNumberOfEmployees(employeeService));
 
         employee.MapPost("/add",
-            static (EmployeeService employeeSevice, string firstName, string? middleName, string lastName) => AddEmployee(employeeSevice, firstName, middleName, lastName));
+            static (EmployeeService employeeService, string firstName, string? middleName, string lastName) => AddEmployee(employeeService, firstName, middleName, lastName));
     }
 
     /// <summary>
