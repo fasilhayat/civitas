@@ -14,7 +14,6 @@ public class EmployeeService
     /// </summary>
     private readonly IEmployeeRepository _employeeRepository;
 
-
     /// <summary>
     /// The reliable delivery actor used for message delivery.
     /// </summary>
