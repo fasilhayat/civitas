@@ -1,7 +1,7 @@
 # Variables
 DOCKER_COMPOSE_FILE := $(CURDIR)/docker-compose.yml
 PROJECT_NAME := civitas
-COMPOSE := docker-compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME)
+COMPOSE := docker compose -f $(DOCKER_COMPOSE_FILE) -p $(PROJECT_NAME)
 
 NGINX_CONTAINER := proxy
 NGINX_IMAGE := civitas-proxy:v1.0
