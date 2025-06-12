@@ -486,3 +486,7 @@ Civitas/
     }
 
 ```
+
+```cmd
+curl.exe -v -X "GET" "http://localhost:7080/v1/employee/list" -H "accept: */*" -H "X-API-KEY: Skyw@lker!" --noproxy localhost
+```
