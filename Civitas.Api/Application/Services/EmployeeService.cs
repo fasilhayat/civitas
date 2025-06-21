@@ -59,9 +59,10 @@ public class EmployeeService
     }
 
     /// <summary>
-    /// Adds a new employee asynchronously.
+    /// Adds a new employee asynchronously by sending the data to a reliable delivery actor for processing.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="employee">The <see cref="Employee"/> object that needs to be added.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task AddEmployeeAsync(Employee employee)
     {
         var callId = Guid.NewGuid().ToString();
