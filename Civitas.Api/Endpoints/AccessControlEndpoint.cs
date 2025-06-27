@@ -15,7 +15,7 @@ public static class AccessControlEndpoint
         var employee = endpoints.MapGroup("/v1/access").WithTags("AccessControl");
 
         employee.MapGet("/id/{identity}",
-            static (long identity, AccessControlService accessControlSevice) => GetEmployeeAccessControl(identity, accessControlSevice));
+            static (long identity, AccessControlService accessControlService) => GetEmployeeAccessControl(identity, accessControlService));
 
     }
 
@@ -23,11 +23,11 @@ public static class AccessControlEndpoint
     /// Gets the access control information of an employee associated with a specific ID.
     /// </summary>
     /// <param name="identity">The identity of the employee</param>
-    /// <param name="accessControlSevice">The service to handle Employee operations.</param>
+    /// <param name="accessControlService">The service to handle Employee operations.</param>
     /// <returns>The access control information of the employee.</returns>
-    private static async Task<IResult> GetEmployeeAccessControl(long identity, AccessControlService accessControlSevice)
+    private static async Task<IResult> GetEmployeeAccessControl(long identity, AccessControlService accessControlService)
     {
-        var accessControl = await accessControlSevice.GetEmployeeAccessControl(identity);
+        var accessControl = await accessControlService.GetEmployeeAccessControl(identity);
         return accessControl == null ? Results.Json(new { message = "Access control not found" }, statusCode: 404) : Results.Json(accessControl, statusCode: 200);
     }
 }
